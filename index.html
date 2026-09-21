@@ -10,7 +10,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cinzel:wght@400;500;600;700&family=Italiana&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Cinzel:wght@400;500;600;700&family=Italiana&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Tenor+Sans&display=swap" rel="stylesheet" />
   <style>
 :root{
   --plum:#240D22;
@@ -61,12 +61,12 @@ body{
   background:var(--plum-dark);
   color:var(--gold-light);
   text-align:center;
-  font-size:10.5px;
-  letter-spacing:.22em;
+  font-size:11px;
+  letter-spacing:.16em;
   padding:7px 16px;
-  font-family:'Cinzel',serif;
+  font-family:'Tenor Sans','Plus Jakarta Sans',sans-serif;
   text-transform:uppercase;
-  font-weight:600;
+  font-weight:400;
   border-bottom:1px solid rgba(197,168,128,0.2);
 }
 
@@ -116,12 +116,12 @@ body{
   filter:brightness(0);
 }
 .header-v3-logo-text{
-  font-family:'Cinzel',serif;
-  font-size:15px;
-  letter-spacing:.22em;
+  font-family:'Italiana','Bodoni Moda',serif;
+  font-size:20px;
+  letter-spacing:.24em;
   text-transform:uppercase;
   color:var(--white);
-  font-weight:600;
+  font-weight:400;
   transition:color .3s;
   white-space:nowrap;
 }
@@ -134,19 +134,20 @@ body{
   gap:28px;
 }
 .header-v3-nav a{
-  font-family:'Cinzel',serif;
-  font-size:11px;
+  font-family:'Tenor Sans','Plus Jakarta Sans',sans-serif;
+  font-size:12.5px;
   letter-spacing:.18em;
   text-transform:uppercase;
   text-decoration:none;
-  color:rgba(255,255,255,0.85);
-  font-weight:600;
+  color:rgba(255,255,255,0.9);
+  font-weight:400;
   transition:color .25s,transform .2s;
   position:relative;
   padding:6px 0;
 }
 .header-v3.scrolled .header-v3-nav a{
   color:var(--plum);
+  font-weight:400;
 }
 .header-v3-nav a::after{
   content:'';
@@ -1714,7 +1715,7 @@ body{
     font-size:9.5px;
     font-weight:600;
     letter-spacing:.04em;
-    font-family:'Cinzel',serif;
+    font-family:'Tenor Sans','Plus Jakarta Sans',sans-serif;
     background:none;
     border:none;
     cursor:pointer;
@@ -1888,7 +1889,7 @@ function FloatingHeader({cart,wishlist,onSearch,onCartOpen}){
             </a>
           </div>
           <nav className="header-v3-nav">
-            {[['Home','#/'],['Sarees','#/sarees'],['Salwars','#/salwars'],['Collection','#/collection'],['New In','#/new-arrivals'],['Offers','#/offers']].map(([label,href])=>(
+            {[['Home','#/'],['Sarees','#/sarees'],['Salwars','#/salwars'],['The Atelier','#/collection'],['New Arrivals','#/new-arrivals'],['Offers','#/offers']].map(([label,href])=>(
               <a key={href} href={href}>{label}</a>
             ))}
           </nav>
@@ -1917,22 +1918,25 @@ function FloatingHeader({cart,wishlist,onSearch,onCartOpen}){
               <img src="logo.png" alt="Srithi" style={{height:30,filter:'brightness(0)'}}/>
               <button onClick={()=>setMobOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:'var(--plum)'}}><IcoX style={{width:22,height:22}}/></button>
             </div>
-            <div style={{display:'flex',flexDirection:'column',gap:12,marginTop:20}}>
+            <div style={{display:'flex',flexDirection:'column',gap:8,marginTop:20}}>
               {[
                 ['Home','#/'],
                 ['Sarees Stories','#/sarees'],
                 ['The Salwar Journal','#/salwars'],
-                ['The Atelier Edit','#/collection'],
-                ['Fresh from Atelier','#/new-arrivals'],
+                ['The Atelier','#/collection'],
+                ['Fresh Arrivals','#/new-arrivals'],
                 ['Signature Pieces','#/best-sellers'],
                 ['Special Offers','#/offers'],
                 ['Size Guide','#/size-guide'],
                 ['Boutique Contact','#/contact']
               ].map(([l,h])=>(
-                <a key={h} href={h} onClick={()=>setMobOpen(false)} style={{fontFamily:'Bodoni Moda,serif',fontSize:20,color:'var(--plum)',textDecoration:'none',padding:'8px 0',borderBottom:'1px solid var(--border-subtle)'}}>{l}</a>
+                <a key={h} href={h} onClick={()=>setMobOpen(false)} style={{fontFamily:'Tenor Sans,sans-serif',fontSize:14,letterSpacing:'.14em',textTransform:'uppercase',color:'var(--plum)',textDecoration:'none',padding:'12px 0',borderBottom:'1px solid var(--border-subtle)',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span>{l}</span>
+                  <span style={{fontSize:12,color:'var(--dusty-rose)'}}>→</span>
+                </a>
               ))}
             </div>
-            <div style={{marginTop:'auto',paddingTop:20,fontSize:11,color:'var(--text-muted)',fontFamily:'Cinzel,serif'}}>
+            <div style={{marginTop:'auto',paddingTop:20,fontSize:11,color:'var(--text-muted)',fontFamily:'Tenor Sans,sans-serif',letterSpacing:'.12em'}}>
               © 2026 SRITHI THE COUTURE
             </div>
           </div>
