@@ -2275,10 +2275,10 @@ function BrandSignatureStory(){
 
 function CustomerReviews(){
   const reviews=[
-    {name:"Priya S.",city:"Chennai",stars:5,text:""Beautiful saree with excellent fabric quality. Exactly as shown in the picture. The gold border is exquisite."",product:"Royal Blue Silk Saree"},
-    {name:"Divya R.",city:"Bengaluru",stars:5,text:""The salwar set looked elegant and the fitting was perfect. Received so many compliments on Diwali!"",product:"Embroidered Anarkali Salwar Set"},
-    {name:"Meena K.",city:"Coimbatore",stars:5,text:""Super quick delivery and the packaging was luxurious. The magenta drape feels like royalty."",product:"Magenta Embroidered Saree"},
-    {name:"Lakshmi V.",city:"Hyderabad",stars:5,text:""I ordered the Chanderi salwar set and I am in love! Fabric is so soft and color is so flattering."",product:"Premium Chanderi Salwar Set"}
+    {name:"Priya S.",city:"Chennai",stars:5,text:"Beautiful saree with excellent fabric quality. Exactly as shown in the picture. The gold border is exquisite.",product:"Royal Blue Silk Saree"},
+    {name:"Divya R.",city:"Bengaluru",stars:5,text:"The salwar set looked elegant and the fitting was perfect. Received so many compliments on Diwali!",product:"Embroidered Anarkali Salwar Set"},
+    {name:"Meena K.",city:"Coimbatore",stars:5,text:"Super quick delivery and the packaging was luxurious. The magenta drape feels like royalty.",product:"Magenta Embroidered Saree"},
+    {name:"Lakshmi V.",city:"Hyderabad",stars:5,text:"I ordered the Chanderi salwar set and I am in love! Fabric is so soft and color is so flattering.",product:"Premium Chanderi Salwar Set"}
   ];
   return(
     <section className="reviews-v3">
@@ -2294,7 +2294,7 @@ function CustomerReviews(){
           <div key={i} className="review-v3-card">
             <div>
               <p className="review-v3-stars">{'★'.repeat(r.stars)}</p>
-              <p className="review-v3-text">{r.text}</p>
+              <p className="review-v3-text">"{r.text}"</p>
             </div>
             <div>
               <p className="review-v3-author">— {r.name}, {r.city}</p>
@@ -2319,7 +2319,7 @@ function MomentsInSrithi({products}){
     <section className="gallery-v3">
       <div style={{textAlign:'center',marginBottom:32}}>
         <p className="v3-eyebrow">Social Campaign</p>
-        <h2 className="v3-title-xl" style={{fontSize:clamp(30,4vw,48)}}>Moments in Srithi</h2>
+        <h2 className="v3-title-xl" style={{fontSize:'clamp(30px,4vw,48px)'}}>Moments in Srithi</h2>
         <p style={{fontFamily:'Cinzel,serif',fontSize:12,letterSpacing:'.22em',color:'var(--dusty-rose)',marginTop:8}}>@SRITHITHECOUTURE</p>
       </div>
       <div className="gallery-v3-grid">
@@ -3170,9 +3170,9 @@ function App(){
         </div>
       );
     }
-    const m=hash.match(/^#/product/(\d+)$/);
-    if(m){
-      const p=ALL_PRODUCTS.find(x=>x.id===Number(m[1]));
+    if(hash.startsWith('#/product/')){
+      const pid=Number(hash.replace('#/product/',''));
+      const p=ALL_PRODUCTS.find(x=>x.id===pid);
       if(p) return <ProductDetailPageV3 product={p} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>;
     }
     if(hash==='#/search'){
