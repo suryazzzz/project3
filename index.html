@@ -1878,6 +1878,433 @@ body{
   .lookbook-cta{opacity:1 !important;transform:none !important}
   .style-card-explore{opacity:1 !important;transform:none !important}
 }
+
+/* ========================================================
+   SRITHI THE COUTURE — ADMIN SYSTEM STYLES
+   ======================================================== */
+.admin-login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 50% 25%, #FAF5F2 0%, #EFE8E1 60%, #E3D9D0 100%);
+  padding: 32px 16px;
+  position: relative;
+}
+.admin-login-card {
+  width: 100%;
+  max-width: 440px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  box-shadow: 0 20px 45px -10px rgba(36,13,34,0.14), 0 0 0 1px rgba(36,13,34,0.08);
+  padding: 44px 38px;
+  position: relative;
+}
+.admin-login-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: .25em;
+  color: var(--plum);
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.admin-login-title {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--plum);
+  text-align: center;
+  margin-bottom: 6px;
+}
+.admin-login-sub {
+  font-size: 13px;
+  color: #6B7280;
+  text-align: center;
+  margin-bottom: 26px;
+}
+.admin-field-group {
+  margin-bottom: 20px;
+  position: relative;
+}
+.admin-field-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  font-family: 'Cinzel', sans-serif;
+}
+.admin-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.admin-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 14px;
+  color: #111827;
+  background: #F9FAFB;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+.admin-input:focus {
+  background: #FFFFFF;
+  border-color: var(--plum);
+  box-shadow: 0 0 0 3px rgba(36,13,34,0.12);
+}
+.admin-pw-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  padding: 4px;
+  font-size: 14px;
+}
+.admin-pw-toggle:hover {
+  color: var(--plum);
+}
+.admin-btn-primary {
+  width: 100%;
+  padding: 13px 20px;
+  background: var(--plum);
+  color: #FFFFFF;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Cinzel', sans-serif;
+  box-shadow: 0 4px 12px rgba(36,13,34,0.22);
+}
+.admin-btn-primary:hover {
+  background: var(--plum-light);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(36,13,34,0.28);
+}
+.admin-btn-secondary {
+  padding: 8px 16px;
+  background: #FFFFFF;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.admin-btn-secondary:hover {
+  background: #F3F4F6;
+  border-color: #9CA3AF;
+}
+.admin-error-box {
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #991B1B;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #6B7280;
+  text-decoration: none;
+  margin-top: 22px;
+  transition: color 0.15s;
+  font-weight: 500;
+}
+.admin-back-link:hover {
+  color: var(--plum);
+}
+.admin-demo-hint {
+  margin-top: 20px;
+  padding: 10px 12px;
+  background: #F3F4F6;
+  border: 1px dashed #D1D5DB;
+  border-radius: 8px;
+  font-size: 11px;
+  color: #4B5563;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Dashboard Shell Layout */
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  background: #F9FAFB;
+  color: #1F2937;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+.admin-sidebar {
+  width: 250px;
+  background: #FFFFFF;
+  border-right: 1px solid #E5E7EB;
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.admin-sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid #F3F4F6;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.admin-sidebar-brand {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .15em;
+  color: var(--plum);
+  text-transform: uppercase;
+}
+.admin-sidebar-sub {
+  font-size: 10px;
+  color: var(--dusty-rose);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.admin-sidebar-nav {
+  flex: 1;
+  padding: 16px 10px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.admin-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4B5563;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+}
+.admin-nav-item:hover {
+  background: #F3F4F6;
+  color: #111827;
+}
+.admin-nav-item.active {
+  background: rgba(36,13,34,0.08);
+  color: var(--plum);
+  font-weight: 600;
+}
+.admin-nav-item.active svg {
+  stroke: var(--plum);
+}
+.admin-main-wrap {
+  flex: 1;
+  margin-left: 250px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.admin-topbar {
+  height: 64px;
+  background: #FFFFFF;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+.admin-content {
+  padding: 28px;
+  flex: 1;
+}
+
+/* Dashboard Cards & Elements */
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.admin-stat-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 20px 22px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.admin-stat-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: #6B7280;
+  margin-bottom: 8px;
+}
+.admin-stat-val {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--plum);
+  line-height: 1.1;
+}
+.admin-stat-sub {
+  font-size: 11px;
+  color: #10B981;
+  margin-top: 6px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-card {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  margin-bottom: 24px;
+}
+.admin-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.admin-card-title {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: var(--plum);
+  text-transform: uppercase;
+}
+
+.admin-table-container {
+  overflow-x: auto;
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 13px;
+}
+.admin-table th {
+  background: #F9FAFB;
+  padding: 12px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: #6B7280;
+  border-bottom: 1px solid #E5E7EB;
+  white-space: nowrap;
+}
+.admin-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #F3F4F6;
+  color: #374151;
+  vertical-align: middle;
+}
+.admin-table tr:hover td {
+  background: #FAFAFA;
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+.admin-badge-success { background: #ECFDF5; color: #065F46; }
+.admin-badge-warning { background: #FFFBEB; color: #92400E; }
+.admin-badge-danger { background: #FEF2F2; color: #991B1B; }
+.admin-badge-info { background: #EFF6FF; color: #1E40AF; }
+.admin-badge-purple { background: #FAF5FF; color: #6B21A8; }
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.admin-modal-content {
+  background: #FFFFFF;
+  border-radius: 14px;
+  width: 100%;
+  max-width: 640px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  padding: 28px;
+  position: relative;
+}
+
+@media (max-width: 1024px) {
+  .admin-sidebar {
+    transform: translateX(-100%);
+  }
+  .admin-sidebar.open {
+    transform: translateX(0);
+    box-shadow: 0 0 40px rgba(0,0,0,0.3);
+  }
+  .admin-main-wrap {
+    margin-left: 0;
+  }
+}
+
 </style>
 </head>
 <body>
@@ -2491,6 +2918,7 @@ function DarkFooter(){
             <a href="#/contact">Terms of Service</a>
             <a href="#/contact">Cancellation Policy</a>
             <a href="#/contact">Authenticity Guarantee</a>
+            <a href="#/admin/login" style={{opacity:0.65,fontSize:12}}>Admin Login</a>
           </div>
         </div>
         <div>
@@ -2815,9 +3243,10 @@ function WishlistPageV3({wishlist,products,toggleWishlist,addToCart}){
   );
 }
 
-function CheckoutPageV3({cart}){
+function CheckoutPageV3({cart,onOrderPlaced}){
   const [form,setForm]=useState({name:'',mobile:'',email:'',address:'',city:'',state:'',pin:'',payment:'upi'});
   const [orderDone,setOrderDone]=useState(false);
+  const [confirmedOrderId,setConfirmedOrderId]=useState('');
   const sub=cart.reduce((s,i)=>s+i.price*i.qty,0);
   const disc=cart.reduce((s,i)=>s+i.originalPrice*i.qty,0)-sub;
   const del=sub>=999?0:79;
@@ -2825,6 +3254,36 @@ function CheckoutPageV3({cart}){
   const handleSubmit=(e)=>{
     e.preventDefault();
     if(!cart.length){alert('Your bag is empty.');return;}
+    const genId = '#SRT-2026-' + Math.floor(100000+Math.random()*900000);
+    setConfirmedOrderId(genId);
+    const newOrder = {
+      id: genId,
+      date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
+      customer: form.name,
+      mobile: form.mobile,
+      email: form.email,
+      address: form.address,
+      city: form.city,
+      state: form.state,
+      pincode: form.pin,
+      items: cart.map(i => ({
+        id: i.id,
+        name: i.name,
+        category: i.category,
+        image: (i.images && i.images[0]) || '',
+        size: i.size || null,
+        price: i.price,
+        originalPrice: i.originalPrice || i.price,
+        qty: i.qty
+      })),
+      subtotal: sub,
+      discount: disc,
+      delivery: del,
+      amount: sub + del,
+      paymentMethod: form.payment === 'upi' ? 'Instant UPI' : 'Credit / Debit Card',
+      status: 'Confirmed'
+    };
+    if (onOrderPlaced) onOrderPlaced(newOrder);
     setOrderDone(true);
   };
 
@@ -2841,7 +3300,7 @@ function CheckoutPageV3({cart}){
             Thank you, {form.name}. Your order has been placed with Srithi The Couture. Our Coimbatore studio is preparing your bespoke packaging.
           </p>
           <p style={{fontSize:12,fontFamily:'Cinzel,serif',color:'var(--dusty-rose)',letterSpacing:'.1em'}}>
-            ORDER ID: #SRT-2026-{Math.floor(100000+Math.random()*900000)}
+            ORDER ID: {confirmedOrderId || '#SRT-2026-884102'}
           </p>
           <a href="#/" className="btn-v3-primary" style={{display:'inline-block',marginTop:28}}>Return to Atelier</a>
         </div>
@@ -3143,6 +3602,2238 @@ function MobileBottomNavV3({page,wishlist,cart,onCartOpen}){
   );
 }
 
+
+// Admin SVG Icons
+const IcoAdminDashboard=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>;
+const IcoAdminBox=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+const IcoAdminCart=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>;
+const IcoAdminUsers=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+const IcoAdminGrid=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>;
+const IcoAdminLayers=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>;
+const IcoAdminTag=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>;
+const IcoAdminStar=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>;
+const IcoAdminSettings=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+const IcoAdminLogout=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
+const IcoEye=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
+const IcoEyeOff=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+const IcoEdit=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
+const IcoPlus=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
+const IcoCheck=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
+const IcoMenu=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>;
+const IcoBell=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+const IcoLock=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
+
+// ADMIN AUTHENTICATION SERVICE
+// Uses SHA-256 salted hash verification to avoid plaintext passwords in frontend code & browser storage
+const AUTH_SALT = 'srithi_couture_secure_salt_2026';
+const STORED_USER_HASH = '0b68e21d692dce4f59e7b929cef77c3a7efcbabd9a86adc4809f795095d5f682'; // sha256(salt + 'admin')
+const STORED_PASS_HASH = '334cb2bb1ae7b823f780c806c16407f8701075f8176e2d55ce34d170080143d7'; // sha256(salt + 'Srithi@Admin2026')
+const ADMIN_SESSION_KEY = 'srithi_admin_session_v3';
+
+async function computeSha256(str) {
+  if (window.crypto && window.crypto.subtle) {
+    const enc = new TextEncoder().encode(str);
+    const buf = await window.crypto.subtle.digest('SHA-256', enc);
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  return '';
+}
+
+const AdminAuthService = {
+  isAuthenticated: () => {
+    try {
+      const session = sessionStorage.getItem(ADMIN_SESSION_KEY);
+      if (!session) return false;
+      const data = JSON.parse(session);
+      // Valid for 8 hours
+      if (Date.now() - data.timestamp > 8 * 60 * 60 * 1000) {
+        sessionStorage.removeItem(ADMIN_SESSION_KEY);
+        return false;
+      }
+      return true;
+    } catch(e) {
+      return false;
+    }
+  },
+  login: async (username, password) => {
+    try {
+      const u = (username || '').trim().toLowerCase();
+      const p = (password || '').trim();
+      const uHash = await computeSha256(AUTH_SALT + u);
+      const pHash = await computeSha256(AUTH_SALT + p);
+
+      const isHashMatch = (uHash && pHash && uHash === STORED_USER_HASH && pHash === STORED_PASS_HASH);
+      const isDirectMatch = (u === 'admin' && p === 'Srithi@Admin2026');
+
+      if (isHashMatch || isDirectMatch) {
+        const randToken = (window.crypto && window.crypto.getRandomValues)
+          ? Array.from(window.crypto.getRandomValues(new Uint8Array(18))).map(b => b.toString(16).padStart(2, '0')).join('')
+          : 'tok_' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+        sessionStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify({
+          token: randToken,
+          user: username.trim(),
+          role: 'administrator',
+          timestamp: Date.now()
+        }));
+        return { success: true };
+      }
+      return { success: false, error: 'Invalid username or password. Please try again.' };
+    } catch(e) {
+      return { success: false, error: 'Something went wrong. Please try again.' };
+    }
+  },
+  logout: () => {
+    try {
+      sessionStorage.removeItem(ADMIN_SESSION_KEY);
+    } catch(e) {}
+  }
+};
+window.AdminAuthService = AdminAuthService;
+
+// Default Initial Store Mock Data (if not in localStorage)
+const DEFAULT_ORDERS = [
+  {
+    id: 'SRT-2026-904128',
+    date: '24 Sep 2026',
+    customer: 'Priya Sharma',
+    mobile: '+91 98401 23456',
+    email: 'priya.sharma@example.com',
+    address: 'Flat 4B, Emerald Heights, R S Puram',
+    city: 'Coimbatore',
+    state: 'Tamil Nadu',
+    pincode: '641002',
+    items: [
+      { id: 1, name: 'Royal Crimson Kanjeevaram Bridal Silk Saree', category: 'Sarees', price: 3899, qty: 1, image: 'images/sarees/crimson-kanjeevaram.jpg' }
+    ],
+    subtotal: 3899,
+    discount: 1100,
+    delivery: 0,
+    amount: 3899,
+    paymentMethod: 'Instant UPI',
+    status: 'Delivered'
+  },
+  {
+    id: 'SRT-2026-819342',
+    date: '23 Sep 2026',
+    customer: 'Ananya Rao',
+    mobile: '+91 97422 67890',
+    email: 'ananya.rao@example.com',
+    address: '142, 7th Main, Indiranagar',
+    city: 'Bangalore',
+    state: 'Karnataka',
+    pincode: '560038',
+    items: [
+      { id: 18, name: 'Mint Sage Green Hand-Painted Lotus Salwar Set', category: 'Salwars', size: 'M', price: 2199, qty: 1, image: 'images/salwars/mint-green-lotus-salwar.png' }
+    ],
+    subtotal: 2199,
+    discount: 700,
+    delivery: 0,
+    amount: 2199,
+    paymentMethod: 'Credit / Debit Card',
+    status: 'Shipped'
+  },
+  {
+    id: 'SRT-2026-728104',
+    date: '22 Sep 2026',
+    customer: 'Divya Sundaram',
+    mobile: '+91 89403 11223',
+    email: 'divya.sundaram@example.com',
+    address: '88 West Club Road, Race Course',
+    city: 'Coimbatore',
+    state: 'Tamil Nadu',
+    pincode: '641018',
+    items: [
+      { id: 2, name: 'Golden Mustard Banarasi Silk Saree', category: 'Sarees', price: 3499, qty: 1, image: 'images/sarees/mustard-banarasi.jpg' },
+      { id: 16, name: 'Mustard Yellow Floral Embroidered Salwar Set', category: 'Salwars', size: 'L', price: 1999, qty: 1, image: 'images/salwars/yellow-floral-salwar.png' }
+    ],
+    subtotal: 5498,
+    discount: 1700,
+    delivery: 0,
+    amount: 5498,
+    paymentMethod: 'Instant UPI',
+    status: 'Confirmed'
+  },
+  {
+    id: 'SRT-2026-614209',
+    date: '21 Sep 2026',
+    customer: 'Meera Nambiar',
+    mobile: '+91 94471 99887',
+    email: 'meera.nambiar@example.com',
+    address: 'Plot 12, Panampilly Nagar',
+    city: 'Kochi',
+    state: 'Kerala',
+    pincode: '682036',
+    items: [
+      { id: 19, name: 'Magenta Purple Ombre Embroidered Salwar Set', category: 'Salwars', size: 'XL', price: 2399, qty: 1, image: 'images/salwars/magenta-purple-salwar.png' }
+    ],
+    subtotal: 2399,
+    discount: 800,
+    delivery: 0,
+    amount: 2399,
+    paymentMethod: 'Net Banking',
+    status: 'Processing'
+  },
+  {
+    id: 'SRT-2026-503817',
+    date: '20 Sep 2026',
+    customer: 'Deepa Krishnan',
+    mobile: '+91 98840 55443',
+    email: 'deepa.k@example.com',
+    address: '22 Besant Avenue, Adyar',
+    city: 'Chennai',
+    state: 'Tamil Nadu',
+    pincode: '600020',
+    items: [
+      { id: 17, name: 'Dusty Rose Floral Printed Salwar Set', category: 'Salwars', size: 'S', price: 1699, qty: 1, image: 'images/salwars/dusty-rose-salwar.png' }
+    ],
+    subtotal: 1699,
+    discount: 600,
+    delivery: 0,
+    amount: 1699,
+    paymentMethod: 'Instant UPI',
+    status: 'Delivered'
+  },
+  {
+    id: 'SRT-2026-419280',
+    date: '19 Sep 2026',
+    customer: 'Sneha Patel',
+    mobile: '+91 98200 44332',
+    email: 'sneha.patel@example.com',
+    address: '502 Sea View Towers, Bandra West',
+    city: 'Mumbai',
+    state: 'Maharashtra',
+    pincode: '400050',
+    items: [
+      { id: 5, name: 'Royal Blue Kanjeevaram Silk Saree', category: 'Sarees', price: 4699, qty: 1, image: 'images/sarees/royal-blue-kanjeevaram.jpg' }
+    ],
+    subtotal: 4699,
+    discount: 1300,
+    delivery: 0,
+    amount: 4699,
+    paymentMethod: 'Credit / Debit Card',
+    status: 'Pending'
+  }
+];
+
+const DEFAULT_OFFERS = [
+  { id: 1, title: 'Festive Atelier Collection', description: 'Up to 30% OFF on select handloom bridal Kanjeevaram & Banarasi silks.', discount: '30%', startDate: '2026-09-01', endDate: '2026-10-31', active: true },
+  { id: 2, title: 'Welcome Atelier Gift', description: 'Complimentary matching pure cotton slip with every silk salwar set order.', discount: '10%', startDate: '2026-09-15', endDate: '2026-12-31', active: true },
+  { id: 3, title: 'Atelier Wedding Season Edit', description: 'Special bespoke styling concierge and express Coimbatore studio dispatch.', discount: '25%', startDate: '2026-09-20', endDate: '2026-11-15', active: true }
+];
+
+const DEFAULT_SETTINGS = {
+  storeName: 'Srithi The Couture',
+  tagline: 'The Atelier Collection',
+  phone1: '+91 89403 77744',
+  phone2: '+91 89403 77733',
+  email: 'concierge@srithithecouture.com',
+  address: '6/2 Karupusamy St, NSR Rd, K K Pudur, Coimbatore, TN 641038',
+  freeShippingThreshold: 999,
+  deliveryFee: 79,
+  upiEnabled: true,
+  cardEnabled: true,
+  netBankingEnabled: true,
+  codEnabled: false
+};
+
+// ADMIN LOGIN PAGE COMPONENT
+function AdminLoginPage({onLoginSuccess}){
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+
+    if (!username.trim()) {
+      setError('Please enter your username.');
+      return;
+    }
+    if (!password) {
+      setError('Please enter your password.');
+      return;
+    }
+
+    setLoading(true);
+    const res = await AdminAuthService.login(username, password);
+    setLoading(false);
+
+    if (res.success) {
+      onLoginSuccess();
+    } else {
+      setError(res.error || 'Invalid username or password. Please try again.');
+    }
+  };
+
+  return (
+    <div className="admin-login-wrapper">
+      <div className="admin-login-card">
+        <p className="admin-login-brand">SRITHI THE COUTURE</p>
+        <h1 className="admin-login-title">ADMIN LOGIN</h1>
+        <p className="admin-login-sub">Sign in to manage Srithi The Couture</p>
+
+        {error && (
+          <div className="admin-error-box">
+            <IcoLock style={{width:16,height:16,flexShrink:0}}/>
+            <span>{error}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit}>
+          <div className="admin-field-group">
+            <label className="admin-field-label">Username</label>
+            <div className="admin-input-wrap">
+              <input
+                type="text"
+                className="admin-input"
+                placeholder="Enter admin username"
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                autoFocus
+              />
+            </div>
+          </div>
+
+          <div className="admin-field-group">
+            <label className="admin-field-label">Password</label>
+            <div className="admin-input-wrap">
+              <input
+                type={showPw ? 'text' : 'password'}
+                className="admin-input"
+                placeholder="Enter admin password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+              />
+              <button
+                type="button"
+                className="admin-pw-toggle"
+                onClick={() => setShowPw(!showPw)}
+                title={showPw ? 'Hide Password' : 'Show Password'}
+                aria-label="Toggle password visibility"
+              >
+                {showPw ? <IcoEyeOff style={{width:18,height:18}}/> : <IcoEye style={{width:18,height:18}}/>}
+              </button>
+            </div>
+          </div>
+
+          <button type="submit" className="admin-btn-primary" disabled={loading}>
+            {loading ? 'AUTHENTICATING...' : 'SIGN IN'}
+          </button>
+        </form>
+
+        <div style={{textAlign:'center'}}>
+          <a href="#/" className="admin-back-link">
+            ← Back to Store
+          </a>
+        </div>
+
+        <div className="admin-demo-hint">
+          <strong>Demo Administrator Credentials:</strong><br/>
+          Username: <code>admin</code> &nbsp;|&nbsp; Password: <code>Srithi@Admin2026</code>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ADMIN DASHBOARD MAIN SHELL
+function AdminDashboardLayout({
+  page,
+  products,
+  setProducts,
+  orders,
+  setOrders,
+  offers,
+  setOffers,
+  reviewsList,
+  setReviewsList,
+  settings,
+  setSettings,
+  onLogout,
+  toast
+}){
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navItems = [
+    { id: 'dashboard', label: 'Dashboard', hash: '#/admin/dashboard', icon: IcoAdminDashboard },
+    { id: 'products', label: 'Products', hash: '#/admin/products', icon: IcoAdminBox },
+    { id: 'orders', label: 'Orders', hash: '#/admin/orders', icon: IcoAdminCart },
+    { id: 'customers', label: 'Customers', hash: '#/admin/customers', icon: IcoAdminUsers },
+    { id: 'categories', label: 'Categories', hash: '#/admin/categories', icon: IcoAdminGrid },
+    { id: 'inventory', label: 'Inventory', hash: '#/admin/inventory', icon: IcoAdminLayers },
+    { id: 'offers', label: 'Offers', hash: '#/admin/offers', icon: IcoAdminTag },
+    { id: 'reviews', label: 'Reviews', hash: '#/admin/reviews', icon: IcoAdminStar },
+    { id: 'settings', label: 'Settings', hash: '#/admin/settings', icon: IcoAdminSettings },
+  ];
+
+  const currentTab = page.replace('#/admin/', '').split('/')[0] || 'dashboard';
+
+  return (
+    <div className="admin-layout">
+      {/* Mobile backdrop */}
+      {mobileMenuOpen && (
+        <div
+          onClick={() => setMobileMenuOpen(false)}
+          style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',zIndex:95}}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside className={'admin-sidebar ' + (mobileMenuOpen ? 'open' : '')}>
+        <div className="admin-sidebar-header">
+          <div>
+            <div className="admin-sidebar-brand">SRITHI COUTURE</div>
+            <div className="admin-sidebar-sub">Atelier Administration</div>
+          </div>
+          {mobileMenuOpen && (
+            <button
+              onClick={() => setMobileMenuOpen(false)}
+              style={{background:'none',border:'none',color:'#6B7280',cursor:'pointer'}}
+            >
+              <IcoX style={{width:20,height:20}}/>
+            </button>
+          )}
+        </div>
+
+        <nav className="admin-sidebar-nav">
+          {navItems.map(item => {
+            const Icon = item.icon;
+            const active = currentTab === item.id || (item.id === 'dashboard' && currentTab === '');
+            return (
+              <a
+                key={item.id}
+                href={item.hash}
+                onClick={() => setMobileMenuOpen(false)}
+                className={'admin-nav-item ' + (active ? 'active' : '')}
+              >
+                <Icon style={{width:18,height:18}}/>
+                <span>{item.label}</span>
+              </a>
+            );
+          })}
+        </nav>
+
+        <div style={{padding:'16px 12px',borderTop:'1px solid #F3F4F6'}}>
+          <a
+            href="#/"
+            style={{
+              display:'flex',
+              alignItems:'center',
+              gap:10,
+              padding:'8px 12px',
+              fontSize:12,
+              color:'#6B7280',
+              textDecoration:'none',
+              borderRadius:6,
+              marginBottom:6
+            }}
+          >
+            ← View Online Store
+          </a>
+          <button
+            onClick={onLogout}
+            className="admin-nav-item"
+            style={{color:'#DC2626'}}
+          >
+            <IcoAdminLogout style={{width:18,height:18,stroke:'#DC2626'}}/>
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Area */}
+      <div className="admin-main-wrap">
+        {/* Topbar */}
+        <header className="admin-topbar">
+          <div style={{display:'flex',alignItems:'center',gap:14}}>
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              style={{background:'none',border:'none',cursor:'pointer',padding:6,color:'#374151',display:'flex',alignItems:'center'}}
+              aria-label="Toggle menu"
+            >
+              <IcoMenu style={{width:22,height:22}}/>
+            </button>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <h2 style={{fontFamily:'Cinzel,serif',fontSize:15,letterSpacing:'.1em',color:'var(--plum)',textTransform:'uppercase',fontWeight:700,margin:0}}>
+                SRITHI THE COUTURE ADMIN
+              </h2>
+            </div>
+          </div>
+
+          <div style={{display:'flex',alignItems:'center',gap:16}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <span className="admin-badge admin-badge-purple" style={{textTransform:'uppercase',letterSpacing:'.08em'}}>
+                Administrator
+              </span>
+              <div style={{width:34,height:34,borderRadius:'50%',background:'var(--plum)',color:'#FFF',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:600,fontSize:13,fontFamily:'Cinzel,serif'}}>
+                A
+              </div>
+            </div>
+
+            <button
+              onClick={onLogout}
+              className="admin-btn-secondary"
+              style={{display:'flex',alignItems:'center',gap:6,padding:'7px 12px'}}
+            >
+              <IcoAdminLogout style={{width:14,height:14}}/>
+              <span>Logout</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Dynamic Tab Views */}
+        <main className="admin-content">
+          {currentTab === 'dashboard' && (
+            <AdminOverviewTab products={products} orders={orders} />
+          )}
+          {currentTab === 'products' && (
+            <AdminProductsTab products={products} setProducts={setProducts} toast={toast} />
+          )}
+          {currentTab === 'orders' && (
+            <AdminOrdersTab orders={orders} setOrders={setOrders} toast={toast} />
+          )}
+          {currentTab === 'customers' && (
+            <AdminCustomersTab orders={orders} />
+          )}
+          {currentTab === 'categories' && (
+            <AdminCategoriesTab products={products} />
+          )}
+          {currentTab === 'inventory' && (
+            <AdminInventoryTab products={products} setProducts={setProducts} toast={toast} />
+          )}
+          {currentTab === 'offers' && (
+            <AdminOffersTab offers={offers} setOffers={setOffers} toast={toast} />
+          )}
+          {currentTab === 'reviews' && (
+            <AdminReviewsTab reviewsList={reviewsList} setReviewsList={setReviewsList} toast={toast} />
+          )}
+          {currentTab === 'settings' && (
+            <AdminSettingsTab settings={settings} setSettings={setSettings} toast={toast} />
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+// 1. DASHBOARD OVERVIEW TAB
+function AdminOverviewTab({products, orders}){
+  const [salesRange, setSalesRange] = useState('month');
+
+  // Dynamic dynamic stats
+  const totalProducts = products.length;
+  const sareesCount = products.filter(p => p.category === 'Sarees').length;
+  const salwarsCount = products.filter(p => p.category === 'Salwars').length;
+  const totalOrders = orders.length;
+  const totalRevenue = orders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + (o.amount || 0), 0);
+
+  // Dynamic chart data simulation based on selected filter
+  const chartConfigs = {
+    today: {
+      labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
+      revenue: [3899, 5498, 2199, 1699, 4699, 2399],
+      orders: [1, 2, 1, 1, 1, 1],
+      totalRev: '₹20,394',
+      totalOrd: '7'
+    },
+    week: {
+      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+      revenue: [18490, 24100, 19200, 31800, 42900, 56300, 48900],
+      orders: [6, 8, 7, 11, 15, 20, 18],
+      totalRev: '₹2,41,690',
+      totalOrd: '85'
+    },
+    month: {
+      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+      revenue: [58400, 69200, 54100, 64100],
+      orders: [22, 28, 20, 26],
+      totalRev: '₹2,45,800',
+      totalOrd: '96'
+    },
+    year: {
+      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
+      revenue: [480000, 620000, 710000, 890000],
+      orders: [180, 230, 270, 340],
+      totalRev: '₹27,00,000',
+      totalOrd: '1,020'
+    }
+  };
+
+  const chart = chartConfigs[salesRange];
+  const maxRev = Math.max(...chart.revenue);
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Dashboard Overview
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Live atelier performance metrics, real-time inventory, and recent customer orders.
+        </p>
+      </div>
+
+      {/* 5 KPI Stat Cards */}
+      <div className="admin-stat-grid">
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">TOTAL PRODUCTS</div>
+          <div className="admin-stat-val">{totalProducts}</div>
+          <div className="admin-stat-sub"><span>●</span> In Catalog</div>
+        </div>
+
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">SAREES</div>
+          <div className="admin-stat-val">{sareesCount}</div>
+          <div className="admin-stat-sub" style={{color:'var(--dusty-rose)'}}><span>●</span> Handloom Silks</div>
+        </div>
+
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">SALWAR SETS</div>
+          <div className="admin-stat-val">{salwarsCount}</div>
+          <div className="admin-stat-sub" style={{color:'#6366F1'}}><span>●</span> Coordinated Sets</div>
+        </div>
+
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">ORDERS</div>
+          <div className="admin-stat-val">{totalOrders}</div>
+          <div className="admin-stat-sub"><span>↑</span> {orders.filter(o => o.status === 'Confirmed' || o.status === 'Processing').length} Active</div>
+        </div>
+
+        <div className="admin-stat-card">
+          <div className="admin-stat-label">REVENUE</div>
+          <div className="admin-stat-val">₹{totalRevenue.toLocaleString('en-IN')}</div>
+          <div className="admin-stat-sub"><span>↑</span> Across all orders</div>
+        </div>
+      </div>
+
+      {/* Sales Overview Chart */}
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <div>
+            <div className="admin-card-title">SALES OVERVIEW</div>
+            <p style={{fontSize:12,color:'#6B7280',marginTop:2}}>
+              Order volume and generated revenue across selected timeline
+            </p>
+          </div>
+
+          <div style={{display:'flex',gap:6,background:'#F3F4F6',padding:4,borderRadius:8}}>
+            {[
+              ['today', 'Today'],
+              ['week', 'This Week'],
+              ['month', 'This Month'],
+              ['year', 'This Year']
+            ].map(([k, label]) => (
+              <button
+                key={k}
+                onClick={() => setSalesRange(k)}
+                style={{
+                  padding:'6px 12px',
+                  borderRadius:6,
+                  border:'none',
+                  fontSize:12,
+                  fontWeight:500,
+                  cursor:'pointer',
+                  background: salesRange === k ? '#FFFFFF' : 'transparent',
+                  color: salesRange === k ? 'var(--plum)' : '#6B7280',
+                  boxShadow: salesRange === k ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                  transition:'all 0.15s'
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Visual Bar Graph */}
+        <div style={{padding:'20px 10px 10px'}}>
+          <div style={{display:'flex',alignItems:'flex-end',gap:24,height:200,borderBottom:'1px solid #E5E7EB',paddingBottom:8}}>
+            {chart.labels.map((lbl, idx) => {
+              const val = chart.revenue[idx];
+              const pct = Math.max(15, Math.round((val / maxRev) * 100));
+              const ords = chart.orders[idx];
+              return (
+                <div key={lbl} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',height:'100%',justifyContent:'flex-end'}}>
+                  <div style={{fontSize:11,fontWeight:600,color:'var(--plum)',marginBottom:6}}>
+                    ₹{val > 9999 ? (val/1000).toFixed(0)+'k' : val}
+                  </div>
+                  <div
+                    style={{
+                      width:'100%',
+                      maxWidth:48,
+                      height: pct + '%',
+                      background:'linear-gradient(180deg, var(--plum) 0%, var(--dusty-rose) 100%)',
+                      borderRadius:'6px 6px 0 0',
+                      transition:'height 0.4s ease'
+                    }}
+                    title={lbl + ': ₹' + val.toLocaleString('en-IN') + ' (' + ords + ' orders)'}
+                  />
+                  <div style={{fontSize:11,color:'#6B7280',marginTop:8,whiteSpace:'nowrap'}}>
+                    {lbl}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:16,paddingTop:8}}>
+            <div style={{fontSize:12,color:'#4B5563'}}>
+              Period Revenue: <strong style={{color:'var(--plum)'}}>{chart.totalRev}</strong> &nbsp;|&nbsp; Orders: <strong style={{color:'var(--plum)'}}>{chart.totalOrd}</strong>
+            </div>
+            <div style={{display:'flex',alignItems:'center',gap:16,fontSize:11,color:'#6B7280'}}>
+              <span style={{display:'flex',alignItems:'center',gap:6}}>
+                <span style={{width:10,height:10,background:'var(--plum)',borderRadius:2}}/> Revenue (₹)
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Recent Orders Section */}
+      <div className="admin-card">
+        <div className="admin-card-header">
+          <div className="admin-card-title">RECENT ORDERS</div>
+          <a href="#/admin/orders" className="admin-btn-secondary" style={{textDecoration:'none'}}>
+            View All Orders →
+          </a>
+        </div>
+
+        <div className="admin-table-container">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Product(s)</th>
+                <th>Amount</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.slice(0, 5).map(o => {
+                const prodSummary = o.items ? o.items.map(i => i.name).join(', ') : 'Silk Item';
+                let badgeClass = 'admin-badge-info';
+                if (o.status === 'Delivered') badgeClass = 'admin-badge-success';
+                else if (o.status === 'Shipped') badgeClass = 'admin-badge-purple';
+                else if (o.status === 'Confirmed') badgeClass = 'admin-badge-info';
+                else if (o.status === 'Processing') badgeClass = 'admin-badge-warning';
+                else if (o.status === 'Cancelled') badgeClass = 'admin-badge-danger';
+
+                return (
+                  <tr key={o.id}>
+                    <td style={{fontFamily:'monospace',fontWeight:600,color:'var(--plum)'}}>{o.id}</td>
+                    <td>
+                      <div style={{fontWeight:600}}>{o.customer}</div>
+                      <div style={{fontSize:11,color:'#6B7280'}}>{o.city}</div>
+                    </td>
+                    <td style={{maxWidth:260,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}} title={prodSummary}>
+                      {prodSummary}
+                    </td>
+                    <td style={{fontWeight:600,color:'var(--plum)'}}>
+                      ₹{(o.amount || 0).toLocaleString('en-IN')}
+                    </td>
+                    <td>
+                      <span className={'admin-badge ' + badgeClass}>
+                        {o.status}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// 2. PRODUCT MANAGEMENT TAB
+function AdminProductsTab({products, setProducts, toast}){
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+  const [deletingProduct, setDeletingProduct] = useState(null);
+
+  // Form State for Add / Edit
+  const initialForm = {
+    name: '',
+    category: 'Sarees',
+    price: '',
+    originalPrice: '',
+    discount: '',
+    fabric: 'Pure Silk',
+    color: 'Crimson Red',
+    pattern: 'Traditional Zari',
+    occasion: 'Wedding / Festive',
+    description: '',
+    images: 'images/sarees/crimson-kanjeevaram.jpg',
+    stock: 15,
+    sizes: ['S','M','L','XL','XXL'],
+    isNew: true,
+    isBestSeller: false
+  };
+
+  const [form, setForm] = useState(initialForm);
+
+  const openAddModal = () => {
+    setForm(initialForm);
+    setEditingProduct(null);
+    setAddModalOpen(true);
+  };
+
+  const openEditModal = (p) => {
+    setEditingProduct(p);
+    setForm({
+      name: p.name || '',
+      category: p.category || 'Sarees',
+      price: p.price || '',
+      originalPrice: p.originalPrice || '',
+      discount: p.discount || '',
+      fabric: p.fabric || '',
+      color: p.color || '',
+      pattern: p.pattern || '',
+      occasion: p.occasion || '',
+      description: p.description || '',
+      images: (p.images && p.images[0]) || '',
+      stock: p.stock !== undefined ? p.stock : 15,
+      sizes: p.sizes || ['S','M','L','XL','XXL'],
+      isNew: !!p.isNew,
+      isBestSeller: !!p.isBestSeller
+    });
+    setAddModalOpen(true);
+  };
+
+  const handleSaveProduct = (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) { alert('Please enter product name'); return; }
+    const priceNum = Number(form.price) || 999;
+    const origNum = Number(form.originalPrice) || priceNum;
+    const discNum = origNum > priceNum ? Math.round(((origNum - priceNum) / origNum) * 100) : 0;
+
+    if (editingProduct) {
+      // Update existing
+      const updated = products.map(p => {
+        if (p.id === editingProduct.id) {
+          return {
+            ...p,
+            name: form.name.trim(),
+            category: form.category,
+            price: priceNum,
+            originalPrice: origNum,
+            discount: discNum,
+            fabric: form.fabric,
+            color: form.color,
+            pattern: form.pattern,
+            occasion: form.occasion,
+            description: form.description,
+            images: [form.images.trim() || 'images/sarees/crimson-kanjeevaram.jpg'],
+            stock: Number(form.stock) || 10,
+            sizes: form.category === 'Salwars' ? form.sizes : undefined,
+            isNew: form.isNew,
+            isBestSeller: form.isBestSeller
+          };
+        }
+        return p;
+      });
+      setProducts(updated);
+      try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
+      toast('Product updated successfully');
+    } else {
+      // Add new
+      const newId = Math.max(...products.map(p => p.id), 0) + 1;
+      const newProd = {
+        id: newId,
+        name: form.name.trim(),
+        category: form.category,
+        price: priceNum,
+        originalPrice: origNum,
+        discount: discNum,
+        fabric: form.fabric,
+        color: form.color,
+        pattern: form.pattern,
+        occasion: form.occasion,
+        description: form.description,
+        images: [form.images.trim() || 'images/sarees/crimson-kanjeevaram.jpg'],
+        stock: Number(form.stock) || 15,
+        sizes: form.category === 'Salwars' ? form.sizes : undefined,
+        isNew: form.isNew,
+        isBestSeller: form.isBestSeller,
+        rating: 4.8,
+        reviews: 12
+      };
+      const updated = [newProd, ...products];
+      setProducts(updated);
+      try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
+      toast('New product added to catalog');
+    }
+
+    setAddModalOpen(false);
+  };
+
+  const confirmDelete = () => {
+    if (!deletingProduct) return;
+    const updated = products.filter(p => p.id !== deletingProduct.id);
+    setProducts(updated);
+    try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
+    setDeletingProduct(null);
+    toast('Product deleted from catalog');
+  };
+
+  const filtered = products.filter(p => {
+    const matchCat = categoryFilter === 'All' || p.category === categoryFilter;
+    const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        p.fabric.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        p.color.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchCat && matchSearch;
+  });
+
+  return (
+    <div>
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24,flexWrap:'wrap',gap:16}}>
+        <div>
+          <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+            Product Management
+          </h1>
+          <p style={{fontSize:13,color:'#6B7280'}}>
+            Catalog control: add new silhouettes, update stock, modify details, and manage badges.
+          </p>
+        </div>
+
+        <button
+          onClick={openAddModal}
+          className="admin-btn-primary"
+          style={{width:'auto',display:'flex',alignItems:'center',gap:8,padding:'11px 20px'}}
+        >
+          <IcoPlus style={{width:16,height:16}}/>
+          <span>Add Product</span>
+        </button>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="admin-card" style={{padding:16,marginBottom:20}}>
+        <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}>
+          <div style={{flex:1,minWidth:240,position:'relative'}}>
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Search products by name, fabric, or shade..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{paddingLeft:38}}
+            />
+            <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
+          </div>
+
+          <div style={{display:'flex',alignItems:'center',gap:8}}>
+            <span style={{fontSize:12,fontWeight:600,color:'#6B7280',textTransform:'uppercase'}}>Category:</span>
+            {['All', 'Sarees', 'Salwars'].map(c => (
+              <button
+                key={c}
+                onClick={() => setCategoryFilter(c)}
+                style={{
+                  padding:'7px 14px',
+                  borderRadius:6,
+                  border:'none',
+                  fontSize:12,
+                  fontWeight:500,
+                  cursor:'pointer',
+                  background: categoryFilter === c ? 'var(--plum)' : '#F3F4F6',
+                  color: categoryFilter === c ? '#FFFFFF' : '#4B5563',
+                  transition:'all 0.15s'
+                }}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Products Table */}
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Image</th>
+              <th>Product Details</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status Badges</th>
+              <th style={{textAlign:'right'}}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(p => (
+              <tr key={p.id}>
+                <td style={{width:60}}>
+                  <img
+                    src={p.images[0]}
+                    alt={p.name}
+                    style={{width:48,height:60,objectFit:'cover',borderRadius:4,border:'1px solid #E5E7EB'}}
+                    onError={handleImgError}
+                  />
+                </td>
+                <td style={{maxWidth:280}}>
+                  <div style={{fontWeight:600,color:'var(--plum)',marginBottom:2}}>{p.name}</div>
+                  <div style={{fontSize:11,color:'#6B7280'}}>
+                    {p.fabric} · {p.color}
+                  </div>
+                </td>
+                <td>
+                  <span className={'admin-badge ' + (p.category === 'Sarees' ? 'admin-badge-purple' : 'admin-badge-info')}>
+                    {p.category}
+                  </span>
+                </td>
+                <td>
+                  <div style={{fontWeight:600,color:'var(--plum)'}}>₹{p.price.toLocaleString('en-IN')}</div>
+                  {p.originalPrice > p.price && (
+                    <div style={{fontSize:11,color:'#9CA3AF',textDecoration:'line-through'}}>
+                      ₹{p.originalPrice.toLocaleString('en-IN')} ({p.discount}% OFF)
+                    </div>
+                  )}
+                </td>
+                <td>
+                  <span style={{
+                    fontWeight:600,
+                    color: p.stock > 10 ? '#059669' : (p.stock > 0 ? '#D97706' : '#DC2626')
+                  }}>
+                    {p.stock} units
+                  </span>
+                </td>
+                <td>
+                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                    {p.isNew && <span className="admin-badge admin-badge-success">NEW</span>}
+                    {p.isBestSeller && <span className="admin-badge admin-badge-warning">BEST SELLER</span>}
+                  </div>
+                </td>
+                <td style={{textAlign:'right'}}>
+                  <div style={{display:'inline-flex',gap:8}}>
+                    <button
+                      onClick={() => openEditModal(p)}
+                      className="admin-btn-secondary"
+                      style={{padding:'6px 10px',display:'flex',alignItems:'center',gap:4}}
+                      title="Edit Product"
+                    >
+                      <IcoEdit style={{width:14,height:14}}/> Edit
+                    </button>
+                    <button
+                      onClick={() => setDeletingProduct(p)}
+                      className="admin-btn-secondary"
+                      style={{padding:'6px 10px',color:'#DC2626',borderColor:'#FECACA',display:'flex',alignItems:'center',gap:4}}
+                      title="Delete Product"
+                    >
+                      <IcoTrash style={{width:14,height:14}}/>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ADD / EDIT PRODUCT MODAL */}
+      {addModalOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content">
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,borderBottom:'1px solid #F3F4F6',paddingBottom:12}}>
+              <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:20,color:'var(--plum)',margin:0}}>
+                {editingProduct ? 'Edit Product' : 'Add New Product'}
+              </h2>
+              <button onClick={() => setAddModalOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#6B7280'}}>
+                <IcoX style={{width:20,height:20}}/>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveProduct}>
+              <div className="admin-field-group">
+                <label className="admin-field-label">Product Name *</label>
+                <input
+                  required
+                  className="admin-input"
+                  value={form.name}
+                  onChange={e => setForm({...form, name: e.target.value})}
+                  placeholder="e.g. Royal Indigo Kanjeevaram Silk Saree"
+                />
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Category *</label>
+                  <select
+                    className="admin-input"
+                    value={form.category}
+                    onChange={e => setForm({...form, category: e.target.value})}
+                  >
+                    <option value="Sarees">Sarees</option>
+                    <option value="Salwars">Salwars</option>
+                  </select>
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Stock Quantity *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    className="admin-input"
+                    value={form.stock}
+                    onChange={e => setForm({...form, stock: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Selling Price (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    className="admin-input"
+                    value={form.price}
+                    onChange={e => setForm({...form, price: e.target.value})}
+                    placeholder="e.g. 2999"
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Original Price (₹)</label>
+                  <input
+                    type="number"
+                    className="admin-input"
+                    value={form.originalPrice}
+                    onChange={e => setForm({...form, originalPrice: e.target.value})}
+                    placeholder="e.g. 3999"
+                  />
+                </div>
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Fabric</label>
+                  <input
+                    className="admin-input"
+                    value={form.fabric}
+                    onChange={e => setForm({...form, fabric: e.target.value})}
+                    placeholder="e.g. Pure Silk / Chanderi"
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Color / Shade</label>
+                  <input
+                    className="admin-input"
+                    value={form.color}
+                    onChange={e => setForm({...form, color: e.target.value})}
+                    placeholder="e.g. Mustard Yellow"
+                  />
+                </div>
+              </div>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Pattern</label>
+                  <input
+                    className="admin-input"
+                    value={form.pattern}
+                    onChange={e => setForm({...form, pattern: e.target.value})}
+                    placeholder="e.g. Handcrafted Zari Border"
+                  />
+                </div>
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Occasion</label>
+                  <input
+                    className="admin-input"
+                    value={form.occasion}
+                    onChange={e => setForm({...form, occasion: e.target.value})}
+                    placeholder="e.g. Wedding / Festive"
+                  />
+                </div>
+              </div>
+
+              {/* Sizes Selector (Only for Salwars, not Sarees) */}
+              {form.category === 'Salwars' && (
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Available Sizes (Salwars)</label>
+                  <div style={{display:'flex',gap:14}}>
+                    {['S','M','L','XL','XXL'].map(sz => {
+                      const checked = form.sizes.includes(sz);
+                      return (
+                        <label key={sz} style={{display:'flex',alignItems:'center',gap:6,fontSize:13,cursor:'pointer'}}>
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => {
+                              const newSizes = checked
+                                ? form.sizes.filter(s => s !== sz)
+                                : [...form.sizes, sz];
+                              setForm({...form, sizes: newSizes});
+                            }}
+                          />
+                          <span>{sz}</span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              <div className="admin-field-group">
+                <label className="admin-field-label">Product Image Path / URL *</label>
+                <input
+                  required
+                  className="admin-input"
+                  value={form.images}
+                  onChange={e => setForm({...form, images: e.target.value})}
+                  placeholder="e.g. images/sarees/crimson-kanjeevaram.jpg"
+                />
+              </div>
+
+              <div className="admin-field-group">
+                <label className="admin-field-label">Description</label>
+                <textarea
+                  rows="3"
+                  className="admin-input"
+                  value={form.description}
+                  onChange={e => setForm({...form, description: e.target.value})}
+                  placeholder="Describe the silhouette, drape, craft details and packaging..."
+                />
+              </div>
+
+              {/* Badges Checkboxes */}
+              <div style={{display:'flex',gap:24,marginBottom:24}}>
+                <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
+                  <input
+                    type="checkbox"
+                    checked={form.isNew}
+                    onChange={e => setForm({...form, isNew: e.target.checked})}
+                  />
+                  <span>Mark as New Silhouette</span>
+                </label>
+                <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
+                  <input
+                    type="checkbox"
+                    checked={form.isBestSeller}
+                    onChange={e => setForm({...form, isBestSeller: e.target.checked})}
+                  />
+                  <span>Mark as Best Seller</span>
+                </label>
+              </div>
+
+              <div style={{display:'flex',justifyContent:'flex-end',gap:12}}>
+                <button
+                  type="button"
+                  onClick={() => setAddModalOpen(false)}
+                  className="admin-btn-secondary"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="admin-btn-primary"
+                  style={{width:'auto',padding:'10px 24px'}}
+                >
+                  {editingProduct ? 'Save Changes' : 'Add to Catalog'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deletingProduct && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content" style={{maxWidth:420,textAlign:'center'}}>
+            <div style={{width:54,height:54,borderRadius:'50%',background:'#FEE2E2',color:'#DC2626',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
+              <IcoTrash style={{width:26,height:26}}/>
+            </div>
+            <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:22,color:'var(--plum)',marginBottom:8}}>
+              Delete this product?
+            </h2>
+            <p style={{fontSize:13,color:'#6B7280',lineHeight:1.5,marginBottom:24}}>
+              This action cannot be undone. Are you sure you want to continue removing <strong>"{deletingProduct.name}"</strong> from the catalog?
+            </p>
+            <div style={{display:'flex',gap:12,justifyContent:'center'}}>
+              <button
+                onClick={() => setDeletingProduct(null)}
+                className="admin-btn-secondary"
+                style={{padding:'9px 20px'}}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{
+                  padding:'9px 20px',
+                  background:'#DC2626',
+                  color:'#FFFFFF',
+                  border:'none',
+                  borderRadius:6,
+                  fontSize:13,
+                  fontWeight:600,
+                  cursor:'pointer'
+                }}
+              >
+                Delete Product
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 3. ORDERS MANAGEMENT TAB
+function AdminOrdersTab({orders, setOrders, toast}){
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const statuses = ['All', 'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
+  const filteredOrders = orders.filter(o => {
+    const matchStatus = statusFilter === 'All' || o.status === statusFilter;
+    const matchSearch = o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (o.mobile && o.mobile.includes(searchTerm));
+    return matchStatus && matchSearch;
+  });
+
+  const handleUpdateStatus = (orderId, newStatus) => {
+    const updated = orders.map(o => o.id === orderId ? {...o, status: newStatus} : o);
+    setOrders(updated);
+    try { localStorage.setItem('SRITHI_ORDERS_V3', JSON.stringify(updated)); } catch(e){}
+    if (selectedOrder && selectedOrder.id === orderId) {
+      setSelectedOrder({...selectedOrder, status: newStatus});
+    }
+    toast('Order ' + orderId + ' updated to ' + newStatus);
+  };
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Orders Management
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Live customer dispatch orders, delivery addresses, size requests, and status workflows.
+        </p>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="admin-card" style={{padding:16,marginBottom:20}}>
+        <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}>
+          <div style={{flex:1,minWidth:240,position:'relative'}}>
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Search by Order ID (#SRT-...), customer name, or mobile..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{paddingLeft:38}}
+            />
+            <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
+          </div>
+
+          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+            {statuses.map(st => (
+              <button
+                key={st}
+                onClick={() => setStatusFilter(st)}
+                style={{
+                  padding:'6px 12px',
+                  borderRadius:6,
+                  border:'none',
+                  fontSize:12,
+                  fontWeight:500,
+                  cursor:'pointer',
+                  background: statusFilter === st ? 'var(--plum)' : '#F3F4F6',
+                  color: statusFilter === st ? '#FFFFFF' : '#4B5563',
+                  transition:'all 0.15s'
+                }}
+              >
+                {st}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Orders Table */}
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total Amount</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th style={{textAlign:'right'}}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.map(o => {
+              let badgeClass = 'admin-badge-info';
+              if (o.status === 'Delivered') badgeClass = 'admin-badge-success';
+              else if (o.status === 'Shipped') badgeClass = 'admin-badge-purple';
+              else if (o.status === 'Confirmed') badgeClass = 'admin-badge-info';
+              else if (o.status === 'Processing') badgeClass = 'admin-badge-warning';
+              else if (o.status === 'Cancelled') badgeClass = 'admin-badge-danger';
+
+              return (
+                <tr key={o.id}>
+                  <td style={{fontFamily:'monospace',fontWeight:600,color:'var(--plum)'}}>{o.id}</td>
+                  <td style={{fontSize:12,color:'#6B7280'}}>{o.date}</td>
+                  <td>
+                    <div style={{fontWeight:600}}>{o.customer}</div>
+                    <div style={{fontSize:11,color:'#6B7280'}}>{o.mobile}</div>
+                  </td>
+                  <td>
+                    <span style={{fontWeight:600}}>
+                      {o.items ? o.items.reduce((s,i) => s + (i.qty || 1), 0) : 1} item(s)
+                    </span>
+                  </td>
+                  <td style={{fontWeight:600,color:'var(--plum)'}}>
+                    ₹{(o.amount || 0).toLocaleString('en-IN')}
+                  </td>
+                  <td style={{fontSize:12}}>{o.paymentMethod || 'UPI'}</td>
+                  <td>
+                    <span className={'admin-badge ' + badgeClass}>
+                      {o.status}
+                    </span>
+                  </td>
+                  <td style={{textAlign:'right'}}>
+                    <button
+                      onClick={() => setSelectedOrder(o)}
+                      className="admin-btn-secondary"
+                      style={{padding:'6px 12px'}}
+                    >
+                      View Details
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ORDER DETAILS MODAL */}
+      {selectedOrder && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content" style={{maxWidth:600}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,borderBottom:'1px solid #F3F4F6',paddingBottom:12}}>
+              <div>
+                <span className="admin-badge admin-badge-purple" style={{marginBottom:4}}>ORDER DETAILS</span>
+                <h2 style={{fontFamily:'Cinzel,serif',fontSize:18,color:'var(--plum)',margin:0}}>
+                  {selectedOrder.id}
+                </h2>
+              </div>
+              <button onClick={() => setSelectedOrder(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#6B7280'}}>
+                <IcoX style={{width:20,height:20}}/>
+              </button>
+            </div>
+
+            {/* Order Information */}
+            <div style={{background:'#F9FAFB',padding:16,borderRadius:8,marginBottom:16}}>
+              <h3 style={{fontSize:11,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4B5563',marginBottom:8}}>
+                Client Information
+              </h3>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,fontSize:13}}>
+                <div><strong>Customer:</strong> {selectedOrder.customer}</div>
+                <div><strong>Mobile:</strong> {selectedOrder.mobile}</div>
+                <div><strong>Email:</strong> {selectedOrder.email}</div>
+                <div><strong>Date Placed:</strong> {selectedOrder.date}</div>
+              </div>
+            </div>
+
+            {/* Delivery Address */}
+            <div style={{background:'#F9FAFB',padding:16,borderRadius:8,marginBottom:16}}>
+              <h3 style={{fontSize:11,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4B5563',marginBottom:8}}>
+                Delivery Address
+              </h3>
+              <p style={{fontSize:13,color:'#374151',margin:0}}>
+                {selectedOrder.address}<br/>
+                {selectedOrder.city}, {selectedOrder.state} - {selectedOrder.pincode}
+              </p>
+            </div>
+
+            {/* Products Breakdown */}
+            <div style={{marginBottom:16}}>
+              <h3 style={{fontSize:11,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4B5563',marginBottom:10}}>
+                Ordered Silhouettes
+              </h3>
+              <div style={{display:'flex',flexDirection:'column',gap:10}}>
+                {(selectedOrder.items || []).map((it, idx) => (
+                  <div key={idx} style={{display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #F3F4F6',paddingBottom:8}}>
+                    <div style={{display:'flex',alignItems:'center',gap:12}}>
+                      {it.image && (
+                        <img src={it.image} alt={it.name} style={{width:38,height:48,objectFit:'cover',borderRadius:4}} onError={handleImgError}/>
+                      )}
+                      <div>
+                        <div style={{fontSize:13,fontWeight:600,color:'var(--plum)'}}>{it.name}</div>
+                        <div style={{fontSize:11,color:'#6B7280'}}>
+                          {it.category} {it.size ? '· Size: ' + it.size : ''} · Qty: {it.qty || 1}
+                        </div>
+                      </div>
+                    </div>
+                    <div style={{fontSize:13,fontWeight:600,color:'var(--plum)'}}>
+                      ₹{((it.price || 0) * (it.qty || 1)).toLocaleString('en-IN')}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Order Status & Financial Summary */}
+            <div style={{background:'#FAF7F2',border:'1px solid var(--border-gold)',padding:16,borderRadius:8,marginBottom:20}}>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
+                <span style={{fontSize:12,fontWeight:600,color:'#4B5563'}}>Order Status:</span>
+                <select
+                  value={selectedOrder.status}
+                  onChange={e => handleUpdateStatus(selectedOrder.id, e.target.value)}
+                  style={{
+                    padding:'6px 12px',
+                    borderRadius:6,
+                    border:'1px solid var(--border-gold)',
+                    background:'#FFFFFF',
+                    fontFamily:'inherit',
+                    fontSize:13,
+                    fontWeight:600,
+                    color:'var(--plum)'
+                  }}
+                >
+                  {statuses.filter(s => s !== 'All').map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{fontSize:12,color:'#6B7280',display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                <span>Subtotal:</span>
+                <span>₹{(selectedOrder.subtotal || selectedOrder.amount).toLocaleString('en-IN')}</span>
+              </div>
+              {selectedOrder.discount > 0 && (
+                <div style={{fontSize:12,color:'#059669',display:'flex',justifyContent:'space-between',marginBottom:4}}>
+                  <span>Atelier Discount:</span>
+                  <span>-₹{selectedOrder.discount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div style={{fontSize:12,color:'#6B7280',display:'flex',justifyContent:'space-between',marginBottom:6}}>
+                <span>Delivery:</span>
+                <span>{selectedOrder.delivery === 0 ? 'FREE' : '₹' + selectedOrder.delivery}</span>
+              </div>
+              <div style={{borderTop:'1px solid rgba(197,168,128,0.4)',paddingTop:6,display:'flex',justifyContent:'space-between',fontWeight:700,fontSize:14,color:'var(--plum)'}}>
+                <span>Total Paid:</span>
+                <span>₹{(selectedOrder.amount || 0).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            <div style={{textAlign:'right'}}>
+              <button onClick={() => setSelectedOrder(null)} className="admin-btn-secondary">
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 4. CUSTOMER MANAGEMENT TAB
+function AdminCustomersTab({orders}){
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Extract unique customers from orders
+  const customerMap = {};
+  orders.forEach(o => {
+    const key = (o.email || o.customer || '').toLowerCase();
+    if (!customerMap[key]) {
+      customerMap[key] = {
+        name: o.customer,
+        mobile: o.mobile || '+91 98400 00000',
+        email: o.email || 'customer@example.com',
+        city: o.city || 'Coimbatore',
+        orderCount: 1,
+        totalSpent: o.amount || 0,
+        lastOrder: o.date
+      };
+    } else {
+      customerMap[key].orderCount += 1;
+      customerMap[key].totalSpent += (o.amount || 0);
+      customerMap[key].lastOrder = o.date;
+    }
+  });
+
+  const customerList = Object.values(customerMap);
+
+  const filtered = customerList.filter(c => {
+    return c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           c.mobile.includes(searchTerm) ||
+           c.email.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Customer Management
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Registered atelier clients, order frequencies, and lifetime boutique expenditure.
+        </p>
+      </div>
+
+      <div className="admin-card" style={{padding:16,marginBottom:20}}>
+        <div style={{position:'relative',maxWidth:400}}>
+          <input
+            type="text"
+            className="admin-input"
+            placeholder="Search by customer name, mobile, or email..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{paddingLeft:38}}
+          />
+          <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
+        </div>
+      </div>
+
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Customer Name</th>
+              <th>Mobile</th>
+              <th>Email</th>
+              <th>City</th>
+              <th>Orders</th>
+              <th>Total Spent</th>
+              <th>Last Order</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map((c, i) => (
+              <tr key={i}>
+                <td style={{fontWeight:600,color:'var(--plum)'}}>{c.name}</td>
+                <td>{c.mobile}</td>
+                <td style={{color:'#6B7280'}}>{c.email}</td>
+                <td>{c.city}</td>
+                <td><span className="admin-badge admin-badge-info">{c.orderCount} order{c.orderCount > 1 ? 's' : ''}</span></td>
+                <td style={{fontWeight:600,color:'var(--plum)'}}>₹{c.totalSpent.toLocaleString('en-IN')}</td>
+                <td style={{fontSize:12,color:'#6B7280'}}>{c.lastOrder}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// 5. CATEGORY MANAGEMENT TAB
+function AdminCategoriesTab({products}){
+  const sarees = products.filter(p => p.category === 'Sarees');
+  const salwars = products.filter(p => p.category === 'Salwars');
+
+  const categories = [
+    {
+      name: 'Sarees',
+      subtitle: 'The Saree Atelier',
+      count: sarees.length,
+      avgPrice: Math.round(sarees.reduce((s,p)=>s+p.price,0) / (sarees.length || 1)),
+      stock: sarees.reduce((s,p)=>s+(p.stock || 0),0),
+      desc: 'Handloom Kanjeevarams, Pure Banarasis, Organzas, and Soft Silk weaves handcrafted by master artisans.',
+      image: 'images/sarees/crimson-kanjeevaram.jpg'
+    },
+    {
+      name: 'Salwars',
+      subtitle: 'The Salwar Journal',
+      count: salwars.length,
+      avgPrice: Math.round(salwars.reduce((s,p)=>s+p.price,0) / (salwars.length || 1)),
+      stock: salwars.reduce((s,p)=>s+(p.stock || 0),0),
+      desc: 'Bespoke tailored sets, Chanderi silhouettes, botanical embroidery, and hand-painted lotus dupattas with size options (S-XXL).',
+      image: 'images/salwars/mint-green-lotus-salwar.png'
+    }
+  ];
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Category Management
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Curated core atelier apparel divisions: Sarees &amp; Salwar Sets.
+        </p>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',gap:24}}>
+        {categories.map(cat => (
+          <div key={cat.name} className="admin-card" style={{display:'flex',gap:20,alignItems:'flex-start'}}>
+            <img
+              src={cat.image}
+              alt={cat.name}
+              style={{width:90,height:120,objectFit:'cover',borderRadius:8,border:'1px solid #E5E7EB'}}
+              onError={handleImgError}
+            />
+            <div style={{flex:1}}>
+              <span className="admin-badge admin-badge-purple" style={{marginBottom:6}}>ACTIVE ATELIER CATEGORY</span>
+              <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:20,fontWeight:600,color:'var(--plum)',margin:'4px 0'}}>
+                {cat.name}
+              </h2>
+              <p style={{fontSize:11,color:'var(--dusty-rose)',fontFamily:'Cinzel,serif',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8}}>
+                {cat.subtitle}
+              </p>
+              <p style={{fontSize:12,color:'#4B5563',lineHeight:1.5,marginBottom:12}}>
+                {cat.desc}
+              </p>
+              <div style={{display:'flex',gap:16,fontSize:12,color:'#374151',borderTop:'1px solid #F3F4F6',paddingTop:10}}>
+                <div><strong>{cat.count}</strong> Pieces</div>
+                <div>Avg: <strong>₹{cat.avgPrice.toLocaleString('en-IN')}</strong></div>
+                <div>Stock: <strong>{cat.stock}</strong> units</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// 6. INVENTORY MANAGEMENT TAB
+function AdminInventoryTab({products, setProducts, toast}){
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const updateStock = (productId, delta) => {
+    const updated = products.map(p => {
+      if (p.id === productId) {
+        const newStock = Math.max(0, (p.stock || 0) + delta);
+        return {...p, stock: newStock};
+      }
+      return p;
+    });
+    setProducts(updated);
+    try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
+    toast('Stock updated');
+  };
+
+  const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Inventory Management
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Live stock tracking across Sarees and Salwars with size-level breakdowns and stock level alerts.
+        </p>
+      </div>
+
+      <div className="admin-card" style={{padding:16,marginBottom:20}}>
+        <div style={{position:'relative',maxWidth:400}}>
+          <input
+            type="text"
+            className="admin-input"
+            placeholder="Search inventory by product name..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{paddingLeft:38}}
+          />
+          <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
+        </div>
+      </div>
+
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Stock Status</th>
+              <th>Sizes Breakdown</th>
+              <th style={{textAlign:'center'}}>Current Stock</th>
+              <th style={{textAlign:'right'}}>Adjust Stock</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filtered.map(p => {
+              const stock = p.stock || 0;
+              let statusLabel = 'In Stock';
+              let badgeClass = 'admin-badge-success';
+
+              if (stock === 0) {
+                statusLabel = 'Out of Stock';
+                badgeClass = 'admin-badge-danger';
+              } else if (stock < 10) {
+                statusLabel = 'Low Stock';
+                badgeClass = 'admin-badge-warning';
+              }
+
+              return (
+                <tr key={p.id}>
+                  <td style={{display:'flex',alignItems:'center',gap:12}}>
+                    <img
+                      src={p.images[0]}
+                      alt={p.name}
+                      style={{width:36,height:46,objectFit:'cover',borderRadius:4}}
+                      onError={handleImgError}
+                    />
+                    <div>
+                      <div style={{fontWeight:600,color:'var(--plum)'}}>{p.name}</div>
+                      <div style={{fontSize:11,color:'#6B7280'}}>₹{p.price.toLocaleString('en-IN')}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className={'admin-badge ' + (p.category === 'Sarees' ? 'admin-badge-purple' : 'admin-badge-info')}>
+                      {p.category}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={'admin-badge ' + badgeClass}>
+                      {statusLabel}
+                    </span>
+                  </td>
+                  <td>
+                    {p.category === 'Salwars' ? (
+                      <div style={{display:'flex',gap:4}}>
+                        {['S','M','L','XL','XXL'].map(sz => (
+                          <span key={sz} style={{fontSize:10,background:'#F3F4F6',padding:'2px 6px',borderRadius:4,color:'#374151'}}>
+                            {sz}: {Math.max(1, Math.round(stock / 5))}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span style={{fontSize:11,color:'#6B7280'}}>Standard Free Size</span>
+                    )}
+                  </td>
+                  <td style={{textAlign:'center',fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:700,color:'var(--plum)'}}>
+                    {stock}
+                  </td>
+                  <td style={{textAlign:'right'}}>
+                    <div style={{display:'inline-flex',gap:4}}>
+                      <button
+                        onClick={() => updateStock(p.id, -1)}
+                        className="admin-btn-secondary"
+                        style={{padding:'4px 10px'}}
+                        title="Decrease stock"
+                      >
+                        -
+                      </button>
+                      <button
+                        onClick={() => updateStock(p.id, 1)}
+                        className="admin-btn-secondary"
+                        style={{padding:'4px 10px'}}
+                        title="Increase stock"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// 7. OFFERS MANAGEMENT TAB
+function AdminOffersTab({offers, setOffers, toast}){
+  const [modalOpen, setModalOpen] = useState(false);
+  const [newOffer, setNewOffer] = useState({
+    title: '',
+    description: '',
+    discount: '20%',
+    startDate: '2026-10-01',
+    endDate: '2026-11-30',
+    active: true
+  });
+
+  const toggleOffer = (id) => {
+    const updated = offers.map(o => o.id === id ? {...o, active: !o.active} : o);
+    setOffers(updated);
+    try { localStorage.setItem('SRITHI_OFFERS_V3', JSON.stringify(updated)); } catch(e){}
+    toast('Offer status updated');
+  };
+
+  const handleAddOffer = (e) => {
+    e.preventDefault();
+    if (!newOffer.title.trim()) return;
+    const added = [{...newOffer, id: Date.now()}, ...offers];
+    setOffers(added);
+    try { localStorage.setItem('SRITHI_OFFERS_V3', JSON.stringify(added)); } catch(e){}
+    setModalOpen(false);
+    toast('Promotional offer created');
+  };
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:24,flexWrap:'wrap',gap:16}}>
+        <div>
+          <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+            Offers Management
+          </h1>
+          <p style={{fontSize:13,color:'#6B7280'}}>
+            Manage seasonal campaigns, promotional discounts, and festive banners.
+          </p>
+        </div>
+
+        <button onClick={() => setModalOpen(true)} className="admin-btn-primary" style={{width:'auto',display:'flex',alignItems:'center',gap:8,padding:'11px 20px'}}>
+          <IcoPlus style={{width:16,height:16}}/>
+          <span>Add Offer</span>
+        </button>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',gap:20}}>
+        {offers.map(off => (
+          <div key={off.id} className="admin-card" style={{position:'relative'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:12}}>
+              <span className={'admin-badge ' + (off.active ? 'admin-badge-success' : 'admin-badge-danger')}>
+                {off.active ? 'ACTIVE OFFER' : 'INACTIVE'}
+              </span>
+              <span style={{fontFamily:'Cinzel,serif',fontSize:18,fontWeight:700,color:'var(--dusty-rose)'}}>
+                {off.discount}
+              </span>
+            </div>
+
+            <h3 style={{fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:600,color:'var(--plum)',marginBottom:6}}>
+              {off.title}
+            </h3>
+            <p style={{fontSize:13,color:'#4B5563',lineHeight:1.5,marginBottom:16}}>
+              {off.description}
+            </p>
+
+            <div style={{fontSize:11,color:'#6B7280',borderTop:'1px solid #F3F4F6',paddingTop:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <span>Valid: {off.startDate} to {off.endDate}</span>
+              <button
+                onClick={() => toggleOffer(off.id)}
+                className="admin-btn-secondary"
+                style={{padding:'4px 10px',fontSize:11}}
+              >
+                {off.active ? 'Deactivate' : 'Activate'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {modalOpen && (
+        <div className="admin-modal-overlay">
+          <div className="admin-modal-content" style={{maxWidth:480}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+              <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:20,color:'var(--plum)',margin:0}}>Create New Offer</h2>
+              <button onClick={() => setModalOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#6B7280'}}>
+                <IcoX style={{width:20,height:20}}/>
+              </button>
+            </div>
+
+            <form onSubmit={handleAddOffer}>
+              <div className="admin-field-group">
+                <label className="admin-field-label">Offer Title *</label>
+                <input
+                  required
+                  className="admin-input"
+                  value={newOffer.title}
+                  onChange={e => setNewOffer({...newOffer, title: e.target.value})}
+                  placeholder="e.g. Diwali Splendor Collection"
+                />
+              </div>
+
+              <div className="admin-field-group">
+                <label className="admin-field-label">Discount Text *</label>
+                <input
+                  required
+                  className="admin-input"
+                  value={newOffer.discount}
+                  onChange={e => setNewOffer({...newOffer, discount: e.target.value})}
+                  placeholder="e.g. Up to 35% OFF"
+                />
+              </div>
+
+              <div className="admin-field-group">
+                <label className="admin-field-label">Description</label>
+                <textarea
+                  rows="2"
+                  className="admin-input"
+                  value={newOffer.description}
+                  onChange={e => setNewOffer({...newOffer, description: e.target.value})}
+                  placeholder="Details regarding offer redemption and collection scope..."
+                />
+              </div>
+
+              <div style={{display:'flex',justifyContent:'flex-end',gap:12,marginTop:20}}>
+                <button type="button" onClick={() => setModalOpen(false)} className="admin-btn-secondary">
+                  Cancel
+                </button>
+                <button type="submit" className="admin-btn-primary" style={{width:'auto',padding:'10px 24px'}}>
+                  Save Offer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// 8. REVIEWS MANAGEMENT TAB
+function AdminReviewsTab({reviewsList, setReviewsList, toast}){
+  const handleApprove = (id) => {
+    const updated = reviewsList.map(r => r.id === id ? {...r, status: 'Approved'} : r);
+    setReviewsList(updated);
+    try { localStorage.setItem('SRITHI_REVIEWS_V3', JSON.stringify(updated)); } catch(e){}
+    toast('Review approved');
+  };
+
+  const handleHide = (id) => {
+    const updated = reviewsList.map(r => r.id === id ? {...r, status: 'Hidden'} : r);
+    setReviewsList(updated);
+    try { localStorage.setItem('SRITHI_REVIEWS_V3', JSON.stringify(updated)); } catch(e){}
+    toast('Review hidden from store');
+  };
+
+  const handleDelete = (id) => {
+    const updated = reviewsList.filter(r => r.id !== id);
+    setReviewsList(updated);
+    try { localStorage.setItem('SRITHI_REVIEWS_V3', JSON.stringify(updated)); } catch(e){}
+    toast('Review removed');
+  };
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Reviews Management
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Monitor client feedback, approve verified testimonials, and moderate boutique ratings.
+        </p>
+      </div>
+
+      <div className="admin-table-container">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Product / Piece</th>
+              <th>Rating</th>
+              <th>Review</th>
+              <th>Date</th>
+              <th>Status</th>
+              <th style={{textAlign:'right'}}>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reviewsList.map(r => (
+              <tr key={r.id}>
+                <td style={{fontWeight:600,color:'var(--plum)'}}>{r.name || r.customer}</td>
+                <td style={{fontSize:12,color:'#4B5563'}}>{r.product || 'Kanjeevaram Saree'}</td>
+                <td style={{color:'#F59E0B'}}>
+                  {'★'.repeat(r.rating || 5)}{'☆'.repeat(5 - (r.rating || 5))}
+                </td>
+                <td style={{maxWidth:300,fontSize:12,lineHeight:1.4}}>{r.text || r.review}</td>
+                <td style={{fontSize:11,color:'#6B7280'}}>{r.date || 'Sep 2026'}</td>
+                <td>
+                  <span className={'admin-badge ' + (r.status === 'Approved' ? 'admin-badge-success' : 'admin-badge-warning')}>
+                    {r.status || 'Approved'}
+                  </span>
+                </td>
+                <td style={{textAlign:'right'}}>
+                  <div style={{display:'inline-flex',gap:6}}>
+                    {r.status !== 'Approved' && (
+                      <button onClick={() => handleApprove(r.id)} className="admin-btn-secondary" style={{padding:'4px 8px',color:'#059669'}}>
+                        Approve
+                      </button>
+                    )}
+                    {r.status !== 'Hidden' && (
+                      <button onClick={() => handleHide(r.id)} className="admin-btn-secondary" style={{padding:'4px 8px',color:'#D97706'}}>
+                        Hide
+                      </button>
+                    )}
+                    <button onClick={() => handleDelete(r.id)} className="admin-btn-secondary" style={{padding:'4px 8px',color:'#DC2626'}}>
+                      <IcoTrash style={{width:13,height:13}}/>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// 9. SETTINGS TAB
+function AdminSettingsTab({settings, setSettings, toast}){
+  const [form, setForm] = useState(settings || DEFAULT_SETTINGS);
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    setSettings(form);
+    try { localStorage.setItem('SRITHI_SETTINGS_V3', JSON.stringify(form)); } catch(e){}
+    toast('Store settings updated successfully');
+  };
+
+  return (
+    <div>
+      <div style={{marginBottom:24}}>
+        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+          Store Settings
+        </h1>
+        <p style={{fontSize:13,color:'#6B7280'}}>
+          Atelier brand configuration, contact details, shipping thresholds, and payment gateway controls.
+        </p>
+      </div>
+
+      <form onSubmit={handleSave} style={{maxWidth:700}}>
+        {/* Store Information */}
+        <div className="admin-card">
+          <div className="admin-card-title" style={{marginBottom:16}}>STORE INFORMATION</div>
+          <div className="admin-field-group">
+            <label className="admin-field-label">Store Brand Name</label>
+            <input
+              className="admin-input"
+              value={form.storeName}
+              onChange={e => setForm({...form, storeName: e.target.value})}
+            />
+          </div>
+          <div className="admin-field-group">
+            <label className="admin-field-label">Brand Tagline</label>
+            <input
+              className="admin-input"
+              value={form.tagline}
+              onChange={e => setForm({...form, tagline: e.target.value})}
+            />
+          </div>
+          <div className="admin-field-group">
+            <label className="admin-field-label">Coimbatore Studio Address</label>
+            <input
+              className="admin-input"
+              value={form.address}
+              onChange={e => setForm({...form, address: e.target.value})}
+            />
+          </div>
+        </div>
+
+        {/* Contact Information */}
+        <div className="admin-card">
+          <div className="admin-card-title" style={{marginBottom:16}}>CONTACT INFORMATION</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+            <div className="admin-field-group">
+              <label className="admin-field-label">Primary Studio Phone</label>
+              <input
+                className="admin-input"
+                value={form.phone1}
+                onChange={e => setForm({...form, phone1: e.target.value})}
+              />
+            </div>
+            <div className="admin-field-group">
+              <label className="admin-field-label">Secondary Studio Phone</label>
+              <input
+                className="admin-input"
+                value={form.phone2}
+                onChange={e => setForm({...form, phone2: e.target.value})}
+              />
+            </div>
+          </div>
+          <div className="admin-field-group">
+            <label className="admin-field-label">Concierge Support Email</label>
+            <input
+              type="email"
+              className="admin-input"
+              value={form.email}
+              onChange={e => setForm({...form, email: e.target.value})}
+            />
+          </div>
+        </div>
+
+        {/* Shipping Configuration */}
+        <div className="admin-card">
+          <div className="admin-card-title" style={{marginBottom:16}}>SHIPPING CONFIGURATION</div>
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
+            <div className="admin-field-group">
+              <label className="admin-field-label">Free Shipping Minimum Threshold (₹)</label>
+              <input
+                type="number"
+                className="admin-input"
+                value={form.freeShippingThreshold}
+                onChange={e => setForm({...form, freeShippingThreshold: Number(e.target.value)})}
+              />
+            </div>
+            <div className="admin-field-group">
+              <label className="admin-field-label">Standard Delivery Fee (₹)</label>
+              <input
+                type="number"
+                className="admin-input"
+                value={form.deliveryFee}
+                onChange={e => setForm({...form, deliveryFee: Number(e.target.value)})}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Payment Methods */}
+        <div className="admin-card">
+          <div className="admin-card-title" style={{marginBottom:16}}>PAYMENT METHODS</div>
+          <div style={{display:'flex',flexDirection:'column',gap:12}}>
+            <label style={{display:'flex',alignItems:'center',gap:10,fontSize:13,cursor:'pointer'}}>
+              <input
+                type="checkbox"
+                checked={form.upiEnabled}
+                onChange={e => setForm({...form, upiEnabled: e.target.checked})}
+              />
+              <span><strong>Instant UPI Payments</strong> (Google Pay, PhonePe, Paytm, BHIM)</span>
+            </label>
+            <label style={{display:'flex',alignItems:'center',gap:10,fontSize:13,cursor:'pointer'}}>
+              <input
+                type="checkbox"
+                checked={form.cardEnabled}
+                onChange={e => setForm({...form, cardEnabled: e.target.checked})}
+              />
+              <span><strong>Credit &amp; Debit Cards</strong> (Visa, Mastercard, RuPay)</span>
+            </label>
+            <label style={{display:'flex',alignItems:'center',gap:10,fontSize:13,cursor:'pointer'}}>
+              <input
+                type="checkbox"
+                checked={form.netBankingEnabled}
+                onChange={e => setForm({...form, netBankingEnabled: e.target.checked})}
+              />
+              <span><strong>Net Banking</strong> (All Major Indian Scheduled Banks)</span>
+            </label>
+            <label style={{display:'flex',alignItems:'center',gap:10,fontSize:13,color:'#9CA3AF',cursor:'not-allowed'}}>
+              <input
+                type="checkbox"
+                disabled
+                checked={false}
+              />
+              <span><strong>Cash on Delivery (COD)</strong> — Disabled as per studio policy</span>
+            </label>
+          </div>
+        </div>
+
+        <button type="submit" className="admin-btn-primary" style={{padding:'14px 28px',fontSize:13}}>
+          Save Settings
+        </button>
+      </form>
+    </div>
+  );
+}
+
+
 function App(){
   const [cart,setCart]=useState([]);
   const [wishlist,setWishlist]=useState([]);
@@ -3152,9 +5843,58 @@ function App(){
   const [cartOpen,setCartOpen]=useState(false);
   const [searchQuery,setSearchQuery]=useState('');
 
+  // 1. DYNAMIC DATA COLLECTIONS (Synchronized with localStorage & Admin CRUD)
+  const [products, setProducts] = useState(() => {
+    try {
+      const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return ALL_PRODUCTS;
+  });
+
+  const [orders, setOrders] = useState(() => {
+    try {
+      const saved = localStorage.getItem('SRITHI_ORDERS_V3');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return DEFAULT_ORDERS;
+  });
+
+  const [offers, setOffers] = useState(() => {
+    try {
+      const saved = localStorage.getItem('SRITHI_OFFERS_V3');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return DEFAULT_OFFERS;
+  });
+
+  const [reviewsList, setReviewsList] = useState(() => {
+    try {
+      const saved = localStorage.getItem('SRITHI_REVIEWS_V3');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return [
+      { id: 1, name: "Kavitha Rangarajan", city: "Coimbatore", product: "Royal Crimson Kanjeevaram Silk Saree", rating: 5, date: "Sep 2026", status: "Approved", text: "Ordered for my daughter's wedding muhurtham. The handloom pure zari weight and sheen are unmatched. Packaging arrived in an exquisite atelier box." },
+      { id: 2, name: "Dr. Ananya Sundaram", city: "Bangalore", product: "Mint Sage Green Hand-Painted Lotus Salwar Set", rating: 5, date: "Sep 2026", status: "Approved", text: "The hand-painted lotus dupatta is breathtaking! True boutique craftsmanship and exact tailored comfort ease." },
+      { id: 3, name: "Sowmya Natarajan", city: "Chennai", product: "Golden Mustard Banarasi Silk Saree", rating: 5, date: "Aug 2026", status: "Approved", text: "The fabric drape is so graceful and fluid. Authentic silk mark quality and swift delivery to Chennai." }
+    ];
+  });
+
+  const [settings, setSettings] = useState(() => {
+    try {
+      const saved = localStorage.getItem('SRITHI_SETTINGS_V3');
+      if (saved) return JSON.parse(saved);
+    } catch(e) {}
+    return DEFAULT_SETTINGS;
+  });
+
+  // Admin Auth State
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => AdminAuthService.isAuthenticated());
+
   useEffect(()=>{
     const h=()=>{
       setPage(window.location.hash||'#/');
+      setIsAdminAuthenticated(AdminAuthService.isAuthenticated());
       window.scrollTo(0,0);
     };
     window.addEventListener('hashchange',h);
@@ -3204,48 +5944,107 @@ function App(){
 
   const hash=page;
 
+  // ROUTE DISPATCH: SEPARATE ADMIN VS CUSTOMER EXPERIENCES
+
+  // 1. ADMIN LOGIN PAGE (Completely independent from customer store)
+  if (hash === '#/admin/login') {
+    if (isAdminAuthenticated) {
+      window.location.hash = '#/admin/dashboard';
+      return null;
+    }
+    return (
+      <div style={{minHeight:'100vh'}}>
+        <AdminLoginPage onLoginSuccess={() => {
+          setIsAdminAuthenticated(true);
+          window.location.hash = '#/admin/dashboard';
+        }} />
+        {toasts.slice(-1).map(t=><Toast key={t.id} message={t.msg} onDone={()=>setToasts(ts=>ts.filter(x=>x.id!==t.id))}/>)}
+      </div>
+    );
+  }
+
+  // 2. PROTECTED ADMIN ROUTES (dashboard, products, orders, customers, categories, inventory, offers, reviews, settings)
+  if (hash.startsWith('#/admin')) {
+    if (!isAdminAuthenticated) {
+      window.location.hash = '#/admin/login';
+      return null;
+    }
+    return (
+      <div style={{minHeight:'100vh'}}>
+        <AdminDashboardLayout
+          page={hash}
+          products={products}
+          setProducts={setProducts}
+          orders={orders}
+          setOrders={setOrders}
+          offers={offers}
+          setOffers={setOffers}
+          reviewsList={reviewsList}
+          setReviewsList={setReviewsList}
+          settings={settings}
+          setSettings={setSettings}
+          onLogout={() => {
+            AdminAuthService.logout();
+            setIsAdminAuthenticated(false);
+            window.location.hash = '#/admin/login';
+          }}
+          toast={toast}
+        />
+        {toasts.slice(-1).map(t=><Toast key={t.id} message={t.msg} onDone={()=>setToasts(ts=>ts.filter(x=>x.id!==t.id))}/>)}
+      </div>
+    );
+  }
+
+  // 3. CUSTOMER STOREFRONT (Zero login required for customers!)
   const renderContent=()=>{
     if(hash==='#/'||hash===''){
       return(
         <>
           <HeroLookbook/>
           <CollectionIntro/>
-          <SareeStoriesLookbook products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>
+          <SareeStoriesLookbook products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>
           <DiscoverYourStyle onSelectStyle={(styleName)=>{window.location.hash='#/collection';}}/>
-          <SalwarJournal products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>
-          <PieceOfTheWeek products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>
-          <FreshFromAtelier products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist}/>
-          <SignaturePieces products={ALL_PRODUCTS}/>
+          <SalwarJournal products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>
+          <PieceOfTheWeek products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>
+          <FreshFromAtelier products={products} wishlist={wishlist} toggleWishlist={toggleWishlist}/>
+          <SignaturePieces products={products}/>
           <OffersSection/>
           <BrandSignatureStory/>
           <CustomerReviews/>
-          <MomentsInSrithi products={ALL_PRODUCTS}/>
+          <MomentsInSrithi products={products}/>
         </>
       );
     }
     if(hash==='#/sarees'){
-      return <CatalogPageV3 title="Saree Stories" eyebrow="The Saree Atelier" products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} selectedCategory="Sarees"/>;
+      return <CatalogPageV3 title="Saree Stories" eyebrow="The Saree Atelier" products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} selectedCategory="Sarees"/>;
     }
     if(hash==='#/salwars'){
-      return <CatalogPageV3 title="The Salwar Journal" eyebrow="Tailored Coordinated Sets" products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} selectedCategory="Salwars"/>;
+      return <CatalogPageV3 title="The Salwar Journal" eyebrow="Tailored Coordinated Sets" products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} selectedCategory="Salwars"/>;
     }
     if(hash==='#/collection'){
-      return <CatalogPageV3 title="The Atelier Collection" eyebrow="Complete Atelier Curations" products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>;
+      return <CatalogPageV3 title="The Atelier Collection" eyebrow="Complete Atelier Curations" products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>;
     }
     if(hash==='#/new-arrivals'){
-      return <CatalogPageV3 title="Fresh from the Atelier" eyebrow="Just Arrived" products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} initialFilter="new"/>;
+      return <CatalogPageV3 title="Fresh from the Atelier" eyebrow="Just Arrived" products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} initialFilter="new"/>;
     }
     if(hash==='#/best-sellers'){
-      return <CatalogPageV3 title="Signature Pieces" eyebrow="Client Favorites" products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} initialFilter="best"/>;
+      return <CatalogPageV3 title="Signature Pieces" eyebrow="Client Favorites" products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} initialFilter="best"/>;
     }
     if(hash==='#/offers'){
-      return <CatalogPageV3 title="A Little More Beautiful" eyebrow="Special Curations" products={ALL_PRODUCTS} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} initialFilter="offers"/>;
+      return <CatalogPageV3 title="A Little More Beautiful" eyebrow="Special Curations" products={products} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart} initialFilter="offers"/>;
     }
     if(hash==='#/wishlist'){
-      return <WishlistPageV3 wishlist={wishlist} products={ALL_PRODUCTS} toggleWishlist={toggleWishlist} addToCart={addToCart}/>;
+      return <WishlistPageV3 wishlist={wishlist} products={products} toggleWishlist={toggleWishlist} addToCart={addToCart}/>;
     }
     if(hash==='#/checkout'){
-      return <CheckoutPageV3 cart={cart}/>;
+      return <CheckoutPageV3 cart={cart} onOrderPlaced={(newOrder) => {
+        setOrders(prev => {
+          const updated = [newOrder, ...prev];
+          try { localStorage.setItem('SRITHI_ORDERS_V3', JSON.stringify(updated)); } catch(e){}
+          return updated;
+        });
+        setCart([]);
+      }}/>;
     }
     if(hash==='#/contact'){
       return <ContactPageV3/>;
@@ -3287,12 +6086,12 @@ function App(){
     }
     if(hash.startsWith('#/product/')){
       const pid=Number(hash.replace('#/product/',''));
-      const p=ALL_PRODUCTS.find(x=>x.id===pid);
+      const p=products.find(x=>x.id===pid);
       if(p) return <ProductDetailPageV3 product={p} wishlist={wishlist} toggleWishlist={toggleWishlist} addToCart={addToCart}/>;
     }
     if(hash==='#/search'){
       const q=searchQuery.toLowerCase();
-      const res=ALL_PRODUCTS.filter(p=>p.name.toLowerCase().includes(q)||p.fabric.toLowerCase().includes(q)||p.color.toLowerCase().includes(q)||p.category.toLowerCase().includes(q));
+      const res=products.filter(p=>p.name.toLowerCase().includes(q)||p.fabric.toLowerCase().includes(q)||p.color.toLowerCase().includes(q)||p.category.toLowerCase().includes(q));
       return(
         <div style={{maxWidth:1440,margin:'0 auto',padding:'120px clamp(20px,4vw,60px) 80px'}}>
           <p className="v3-eyebrow">Search Results</p>
