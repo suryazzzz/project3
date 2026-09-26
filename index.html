@@ -2426,6 +2426,37 @@ const SAREES=[
 
 const SALWARS=[
   {
+    id: 27,
+    name: "Silk Cotton Salwar Set",
+    category: "Salwars",
+    price: 2799,
+    originalPrice: 2799,
+    discount: 0,
+    images: [
+      "images/salwars/silk-cotton-salwar-set-01.webp",
+      "images/salwars/silk-cotton-salwar-set-02.webp",
+      "images/salwars/silk-cotton-salwar-set-03.webp",
+      "images/salwars/silk-cotton-salwar-set-04.webp"
+    ],
+    fabric: "Silk Cotton",
+    color: "Peacock Teal Blue",
+    pattern: "Intricate Floral Neckline Embroidery & Scalloped Lace Hem",
+    occasion: "Festive / Celebration / Party Wear",
+    setIncludes: [
+      "Silk Cotton Kurti (Length: 37\")",
+      "Palazzo Pants (Length: 39.5\", Full Elastic)",
+      "Coordinated Shawl / Dupatta (Length: 2.9M)"
+    ],
+    description: "Opulent peacock teal blue Silk Cotton salwar set featuring exquisite hand-detailed floral neckline embroidery, coordinated full elastic palazzo pants (39.5\" length) with delicate hem lace, tailored 37\" kurti, and a grand 2.9-meter matching silk cotton shawl.",
+    sizes: ["L", "XL", "XXL"],
+    isNew: true,
+    isBestSeller: true,
+    rating: 4.9,
+    reviews: 78,
+    stock: 14,
+    mood: ["festive", "statement"]
+  },
+  {
     id: 26,
     name: "Viscose Silk Salwar Set",
     category: "Salwars",
@@ -5984,7 +6015,7 @@ function App(){
       const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
       if (saved) {
         let parsed = JSON.parse(saved);
-        [1, 2, 26].forEach(targetId => {
+        [1, 2, 26, 27].forEach(targetId => {
           const fresh = ALL_PRODUCTS.find(p => p.id === targetId);
           if (fresh) {
             if (parsed.some(p => p.id === targetId)) {
@@ -5996,6 +6027,9 @@ function App(){
         });
         // Sanitize and guarantee correct numeric prices & zero discounts for uploaded items
         parsed = parsed.map(p => {
+          if (p.id === 27) {
+            return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["L", "XL", "XXL"] };
+          }
           if (p.id === 2) {
             return { ...p, price: 11000, originalPrice: 11000, discount: 0 };
           }
