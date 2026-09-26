@@ -1475,6 +1475,18 @@ body{
   gap:12px;
   margin:16px 0;
 }
+.price-comma {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 900 !important;
+  font-size: 1.15em !important;
+  line-height: 0.8 !important;
+  display: inline-block;
+  margin: 0 1.5px;
+  vertical-align: baseline;
+  letter-spacing: 0;
+  color: inherit;
+  text-shadow: 0 0 0.6px currentColor;
+}
 .detail-v3-price{
   font-family:'Bodoni Moda',serif;
   font-size:32px;
@@ -2317,22 +2329,35 @@ const handleImgError = (e) => { if(e&&e.currentTarget&&e.currentTarget.src!==FAL
 const fmt = (n) => {
   if (n === null || n === undefined) return "₹0";
   let str = String(n).trim();
+  let num;
   if (str === '11.00' || str === '11.000' || str === '11' || str === '11000' || str === '11,000') {
-    return "₹11,000";
+    num = 11000;
+  } else if (str === '12.00' || str === '12.000' || str === '12' || str === '12000' || str === '12,000') {
+    num = 12000;
+  } else {
+    str = str.replace(/,/g, '');
+    num = Math.round(Number(str));
+    if (isNaN(num)) num = parseInt(str, 10) || 0;
   }
-  if (str === '12.00' || str === '12.000' || str === '12' || str === '12000' || str === '12,000') {
-    return "₹12,000";
-  }
-  str = str.replace(/,/g, '');
-  let num = Math.round(Number(str));
-  if (isNaN(num)) num = parseInt(str, 10) || 0;
   let s = Math.abs(num).toString();
   let prefix = num < 0 ? "-₹" : "₹";
   if (s.length <= 3) return prefix + s;
   let last3 = s.slice(-3);
   let rest = s.slice(0, -3);
   let formattedRest = rest.replace(/\B(?=(\d{2})+(?!\d))/g, ",");
-  return prefix + formattedRest + "," + last3;
+  const fullNum = formattedRest + ',' + last3;
+  const parts = fullNum.split(',');
+  return (
+    <React.Fragment>
+      {prefix}
+      {parts.map((part, idx) => (
+        <React.Fragment key={idx}>
+          {idx > 0 && <span className="price-comma">,</span>}
+          {part}
+        </React.Fragment>
+      ))}
+    </React.Fragment>
+  );
 };
 
 // Exact product data from source of truth
@@ -2867,7 +2892,7 @@ function SignaturePieces({products}){
               </div>
               <div className="signature-card-price-row">
                 <span style={{fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:600,color:'var(--dusty-rose)'}}>{fmt(p.price)}</span>
-                <span style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(p.originalPrice)}</span>
+                {p.originalPrice > p.price && <span style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(p.originalPrice)}</span>}
               </div>
             </div>
           </a>
@@ -3101,8 +3126,8 @@ function ProductDetailPageV3({product,wishlist,toggleWishlist,addToCart}){
           </div>
           <div className="detail-v3-price-block">
             <span className="detail-v3-price">{fmt(product.price)}</span>
-            <span className="detail-v3-orig">{fmt(product.originalPrice)}</span>
-            <span className="detail-v3-discount">{product.discount}% OFF</span>
+            {product.originalPrice > product.price && <span className="detail-v3-orig">{fmt(product.originalPrice)}</span>}
+            {product.discount > 0 && <span className="detail-v3-discount">{product.discount}% OFF</span>}
           </div>
           <p style={{fontSize:12,color:'#2e7d32',marginBottom:20}}>✓ Inclusive of all taxes · Free delivery on this piece</p>
           <p style={{fontSize:13.5,lineHeight:1.75,color:'var(--text-muted)',marginBottom:24}}>{product.description}</p>
@@ -3172,7 +3197,7 @@ function ProductDetailPageV3({product,wishlist,toggleWishlist,addToCart}){
       <div className="mobile-sticky-buy-bar-v3">
         <div>
           <div style={{fontFamily:'Bodoni Moda,serif',fontSize:20,fontWeight:600,color:'var(--dusty-rose)'}}>{fmt(product.price)}</div>
-          <div style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(product.originalPrice)}</div>
+          {product.originalPrice > product.price && <div style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(product.originalPrice)}</div>}
         </div>
         <div style={{display:'flex',gap:8}}>
           <button onClick={()=>toggleWishlist(product.id)} style={{width:40,height:40,border:'1px solid var(--border-subtle)',background:'var(--white)',display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
@@ -3281,7 +3306,7 @@ function CatalogPageV3({title,eyebrow,products,wishlist,toggleWishlist,addToCart
                 <div>
                   <div className="catalog-card-price-row">
                     <span style={{fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:600,color:'var(--dusty-rose)'}}>{fmt(p.price)}</span>
-                    <span style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(p.originalPrice)}</span>
+                    {p.originalPrice > p.price && <span style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(p.originalPrice)}</span>}
                   </div>
                   <div style={{display:'flex',gap:8,marginTop:10}}>
                     <a href={'#/product/'+p.id} className="btn-v3-primary" style={{flex:1,padding:'9px',fontSize:10,textAlign:'center'}}>View Piece</a>
@@ -3328,7 +3353,7 @@ function WishlistPageV3({wishlist,products,toggleWishlist,addToCart}){
                 <div>
                   <div className="catalog-card-price-row">
                     <span style={{fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:600,color:'var(--dusty-rose)'}}>{fmt(p.price)}</span>
-                    <span style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(p.originalPrice)}</span>
+                    {p.originalPrice > p.price && <span style={{fontSize:11,textDecoration:'line-through',color:'var(--text-muted)'}}>{fmt(p.originalPrice)}</span>}
                   </div>
                   <div style={{display:'flex',gap:8,marginTop:10}}>
                     <a href={'#/product/'+p.id} className="btn-v3-primary" style={{flex:1,padding:'9px',fontSize:10,textAlign:'center'}}>View Details</a>
