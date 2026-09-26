@@ -2346,7 +2346,34 @@ const SAREES=[
     stock: 8,
     mood: ["festive", "statement"]
   },
-  {id:2,name:"Magenta Fuchsia Embroidered Saree",category:"Sarees",price:2199,originalPrice:2999,discount:27,images:["images/sarees/magenta-pink-saree-model.jpg","images/sarees/magenta-pink-saree.png"],fabric:"Soft Silk / Organza",color:"Magenta Pink",pattern:"Scalloped Floral Border",occasion:"Party / Festive",length:"5.5 meters",blouse:"Included",description:"Striking magenta fuchsia pink saree featuring handcrafted scalloped thread and zari embroidery along the border with delicate scattered motifs.",sizes:[],isNew:true,isBestSeller:true,rating:4.8,reviews:112,stock:10,mood:["festive","statement"]},
+  {
+    id: 2,
+    name: "Pure Ikkat Soft Silk Saree",
+    category: "Sarees",
+    price: 11000,
+    originalPrice: 11000,
+    discount: 0,
+    images: [
+      "images/sarees/ikkat-soft-silk-saree-01.webp",
+      "images/sarees/ikkat-soft-silk-saree-02.webp",
+      "images/sarees/ikkat-soft-silk-saree-03.webp",
+      "images/sarees/ikkat-soft-silk-saree-04.webp"
+    ],
+    fabric: "Pure Soft Silk with Handloom Ikkat Weave",
+    color: "Ivory White with Contrast Midnight Black & Antique Gold Zari",
+    pattern: "Handcrafted Ikkat Weave with Intricate Lotus, Bird & Geometric Zari Border",
+    occasion: "Festive / Celebration / Traditional Occasions",
+    length: "5.5 meters saree",
+    blouse: "Contrast Solid Midnight Black Soft Silk Blouse Included (0.8m)",
+    description: "Masterpiece Pure Ikkat Soft Silk Saree featuring a pristine ivory body adorned with subtle Ikkat dashes, framed by an opulent midnight black border woven with antique gold zari lotus, bird, and chevron motifs, and paired with a contrast solid black soft silk blouse piece.",
+    sizes: [],
+    isNew: true,
+    isBestSeller: true,
+    rating: 4.9,
+    reviews: 136,
+    stock: 9,
+    mood: ["festive", "statement"]
+  },
   {id:3,name:"Turquoise & Teal Ombre Saree",category:"Sarees",price:1899,originalPrice:2499,discount:24,images:["images/sarees/turquoise-teal-saree.png"],fabric:"Georgette",color:"Turquoise Blue",pattern:"Dual-Tone Floral Embroidery",occasion:"Reception / Party",length:"5.5 meters",blouse:"Deep Blue Included",description:"Breathtaking dual-tone ombre transition from sky turquoise to deep ocean teal, finished with ornate floral border and hem embroidery.",sizes:[],isNew:false,isBestSeller:true,rating:4.7,reviews:94,stock:15,mood:["occasion","statement"]},
   {id:4,name:"Chocolate Coffee Silk Saree",category:"Sarees",price:1999,originalPrice:2699,discount:26,images:["images/sarees/chocolate-brown-saree.png"],fabric:"Soft Silk",color:"Chocolate Brown",pattern:"Pearl & Stone Border Work",occasion:"Festive / Evening Wear",length:"5.5 meters",blouse:"Gold Blouse Included",description:"Regal chocolate coffee brown silk saree embellished with fine stone and pearl border detailing and all-over floral buttis, styled with an antique gold blouse.",sizes:[],isNew:true,isBestSeller:false,rating:4.8,reviews:86,stock:8,mood:["occasion","everyday"]},
   {id:5,name:"Chiffon Designer Saree",category:"Sarees",price:1299,originalPrice:1799,discount:28,images:["images/sarees/chiffon-designer.jpg"],fabric:"Chiffon",color:"Teal Green",pattern:"Digital Print",occasion:"Office / Casual / Party",length:"5.5 meters",blouse:"Included",description:"Lightweight chiffon saree with a contemporary digital print. Flows gracefully and ideal for office or casual gatherings.",sizes:[],isNew:false,isBestSeller:true,rating:4.5,reviews:155,stock:20,mood:["everyday","occasion"]},
@@ -5901,7 +5928,21 @@ function App(){
   const [products, setProducts] = useState(() => {
     try {
       const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        let parsed = JSON.parse(saved);
+        [1, 2, 26].forEach(targetId => {
+          const fresh = ALL_PRODUCTS.find(p => p.id === targetId);
+          if (fresh) {
+            if (parsed.some(p => p.id === targetId)) {
+              parsed = parsed.map(p => p.id === targetId ? fresh : p);
+            } else {
+              parsed = [fresh, ...parsed];
+            }
+          }
+        });
+        localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(parsed));
+        return parsed;
+      }
     } catch(e) {}
     return ALL_PRODUCTS;
   });
