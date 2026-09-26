@@ -2424,7 +2424,34 @@ const SAREES=[
     stock: 9,
     mood: ["festive", "statement"]
   },
-  {id:3,name:"Turquoise & Teal Ombre Saree",category:"Sarees",price:1899,originalPrice:2499,discount:24,images:["images/sarees/turquoise-teal-saree.png"],fabric:"Georgette",color:"Turquoise Blue",pattern:"Dual-Tone Floral Embroidery",occasion:"Reception / Party",length:"5.5 meters",blouse:"Deep Blue Included",description:"Breathtaking dual-tone ombre transition from sky turquoise to deep ocean teal, finished with ornate floral border and hem embroidery.",sizes:[],isNew:false,isBestSeller:true,rating:4.7,reviews:94,stock:15,mood:["occasion","statement"]},
+  {
+    id: 3,
+    name: "Golden Yellow Pure Tissue Kanchipuram Saree",
+    category: "Sarees",
+    price: 12000,
+    originalPrice: 12000,
+    discount: 0,
+    images: [
+      "images/sarees/yellow-tissue-kanchipuram-01.webp",
+      "images/sarees/yellow-tissue-kanchipuram-02.webp",
+      "images/sarees/yellow-tissue-kanchipuram-03.webp",
+      "images/sarees/yellow-tissue-kanchipuram-04.webp"
+    ],
+    fabric: "Pure Silk Tissue with Silver & Gold Zari Weave",
+    color: "Golden Yellow / Lemon Gold Sheen",
+    pattern: "Diamond Lattice Brocade Body with Heritage Peacock & Deer Zari Border",
+    occasion: "Bridal / Wedding / Festive Celebrations",
+    length: "5.5 meters saree",
+    blouse: "Matching Golden Yellow Pure Silk Blouse Piece Included (0.8m)",
+    description: "Luminous bridal Pure Tissue Kanchipuram Silk Saree in a radiant golden yellow hue, featuring an intricate diamond lattice brocade body, framed by a grand traditional silver and gold zari border woven with peacock, deer, and floral vine motifs, complete with a matching pure silk blouse piece.",
+    sizes: [],
+    isNew: true,
+    isBestSeller: true,
+    rating: 5.0,
+    reviews: 142,
+    stock: 7,
+    mood: ["festive", "statement"]
+  },
   {id:4,name:"Chocolate Coffee Silk Saree",category:"Sarees",price:1999,originalPrice:2699,discount:26,images:["images/sarees/chocolate-brown-saree.png"],fabric:"Soft Silk",color:"Chocolate Brown",pattern:"Pearl & Stone Border Work",occasion:"Festive / Evening Wear",length:"5.5 meters",blouse:"Gold Blouse Included",description:"Regal chocolate coffee brown silk saree embellished with fine stone and pearl border detailing and all-over floral buttis, styled with an antique gold blouse.",sizes:[],isNew:true,isBestSeller:false,rating:4.8,reviews:86,stock:8,mood:["occasion","everyday"]},
   {id:5,name:"Chiffon Designer Saree",category:"Sarees",price:1299,originalPrice:1799,discount:28,images:["images/sarees/chiffon-designer.jpg"],fabric:"Chiffon",color:"Teal Green",pattern:"Digital Print",occasion:"Office / Casual / Party",length:"5.5 meters",blouse:"Included",description:"Lightweight chiffon saree with a contemporary digital print. Flows gracefully and ideal for office or casual gatherings.",sizes:[],isNew:false,isBestSeller:true,rating:4.5,reviews:155,stock:20,mood:["everyday","occasion"]},
   {id:6,name:"Georgette Party Wear Saree",category:"Sarees",price:1599,originalPrice:2199,discount:27,images:["images/sarees/georgette-party.jpg"],fabric:"Georgette",color:"Rose Pink",pattern:"Sequin Work",occasion:"Party / Reception",length:"5.5 meters",blouse:"Included",description:"Glamorous georgette saree with sequin and stone work. The perfect choice for parties and evening receptions.",sizes:[],isNew:false,isBestSeller:false,rating:4.7,reviews:88,stock:5,mood:["festive","statement"]}
@@ -6021,7 +6048,7 @@ function App(){
       const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
       if (saved) {
         let parsed = JSON.parse(saved);
-        [1, 2, 26, 27].forEach(targetId => {
+        [1, 2, 3, 26, 27].forEach(targetId => {
           const fresh = ALL_PRODUCTS.find(p => p.id === targetId);
           if (fresh) {
             if (parsed.some(p => p.id === targetId)) {
@@ -6033,6 +6060,9 @@ function App(){
         });
         // Sanitize and guarantee correct numeric prices & zero discounts for uploaded items
         parsed = parsed.map(p => {
+          if (p.id === 3) {
+            return { ...p, price: 12000, originalPrice: 12000, discount: 0 };
+          }
           if (p.id === 27) {
             return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["L", "XL", "XXL"] };
           }
