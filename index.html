@@ -2636,7 +2636,36 @@ const SALWARS=[
     stock: 15,
     mood: ["festive", "statement"]
   },
-  {id:24,name:"Royal Violet Geometric Batik Salwar Set",category:"Salwars",price:1699,originalPrice:2299,discount:26,images:["images/salwars/royal-violet-batik-salwar.jpg"],fabric:"Cambric Cotton",color:"Royal Violet & Lavender",pattern:"Geometric Batik Print & Mirror Accent",occasion:"Workwear / Casual / Festive",setIncludes:["Printed Kurta","Solid Trouser","Matching Batik Border Dupatta"],description:"Rich royal violet artisan salwar suit featuring bold geometric batik motifs, subtle mirror accents on the V-neck, tailored trousers, and a lightweight printed dupatta.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:false,rating:4.7,reviews:76,stock:18,mood:["everyday","statement"]},
+  {
+    id: 24,
+    name: "Silk Cotton Salwar Set",
+    category: "Salwars",
+    price: 2799,
+    originalPrice: 2799,
+    discount: 0,
+    images: [
+      "images/salwars/crimson-cream-silk-cotton-salwar-01.webp",
+      "images/salwars/crimson-cream-silk-cotton-salwar-02.webp",
+      "images/salwars/crimson-cream-silk-cotton-salwar-03.webp"
+    ],
+    fabric: "Silk Cotton",
+    color: "Cream Ivory with Crimson Maroon",
+    pattern: "Floral Vine Border Print & Embroidered Neckline Placket",
+    occasion: "Festive / Celebration / Party Wear",
+    setIncludes: [
+      "Silk Cotton Kurti (Length: 44 inches)",
+      "Straight Cut Pant (Length: 39.5 inches, Full Elastic)",
+      "Contrast Crimson Shawl / Dupatta (Length: 2.95M)"
+    ],
+    description: "Graceful cream ivory Silk Cotton salwar suit ensemble highlighting fine floral vine print detailing along the sleeves and hem, an exquisitely embroidered keyhole neckline placket, paired with matching 39.5-inch straight cut full-elastic trousers and an opulent 2.95-meter contrast crimson maroon shawl with floral borders.",
+    sizes: ["L", "XL", "XXL"],
+    isNew: true,
+    isBestSeller: true,
+    rating: 4.9,
+    reviews: 82,
+    stock: 11,
+    mood: ["festive", "statement"]
+  },
   {id:25,name:"SRITHI Atelier Boutique Festive Salwar Set",category:"Salwars",price:2499,originalPrice:3499,discount:28,images:["images/salwars/srithi-couture-signature-rack.jpg"],fabric:"Chanderi Silk & Organza Blend",color:"Curated Pastel Palette",pattern:"Handcrafted Boutique Embroidery & Tassels",occasion:"Wedding Festive / Premium Boutique Collection",setIncludes:["Designer Embroidered Kurta","Coordinated Bottom","Artisan Dupatta"],description:"Official SRITHI The Couture flagship collection curation featuring premium hand-embroidered pastels, festive necklines, and opulent drapes crafted for modern ethnic charm.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:true,rating:5.0,reviews:215,stock:10,mood:["festive","statement"]},
   {id:10,name:"Floral Printed Cotton Salwar Set",category:"Salwars",price:1199,originalPrice:1599,discount:25,images:["images/salwars/floral-cotton.jpg"],fabric:"Cotton",color:"Pink",pattern:"Floral Print",occasion:"Casual / Daily Wear",setIncludes:["Kameez","Salwar Bottom","Dupatta"],description:"Bright and comfortable floral printed cotton salwar set. Lightweight and breathable, perfect for daily wear.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:false,rating:4.5,reviews:143,stock:40,mood:["everyday"]},
   {id:11,name:"Embroidered Anarkali Salwar Set",category:"Salwars",price:1899,originalPrice:2499,discount:24,images:["images/salwars/embroidered-anarkali.jpg"],fabric:"Georgette",color:"Maroon",pattern:"Floral Embroidery",occasion:"Festive / Party",setIncludes:["Anarkali Kameez","Salwar Bottom","Dupatta"],description:"Graceful Anarkali style salwar set with detailed embroidery work. Ideal for festive occasions and family functions.",sizes:["S","M","L","XL","XXL"],isNew:false,isBestSeller:true,rating:4.8,reviews:97,stock:18,mood:["festive","occasion"]},
@@ -6162,7 +6191,7 @@ function App(){
       const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
       if (saved) {
         let parsed = JSON.parse(saved);
-        [1, 2, 3, 4, 21, 22, 23, 26, 27].forEach(targetId => {
+        [1, 2, 3, 4, 21, 22, 23, 24, 26, 27].forEach(targetId => {
           const fresh = ALL_PRODUCTS.find(p => p.id === targetId);
           if (fresh) {
             if (parsed.some(p => p.id === targetId)) {
@@ -6174,6 +6203,9 @@ function App(){
         });
         // Sanitize and guarantee correct numeric prices & zero discounts for uploaded items
         parsed = parsed.map(p => {
+          if (p.id === 24) {
+            return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["L", "XL", "XXL"] };
+          }
           if (p.id === 23) {
             return { ...p, price: 2099, originalPrice: 2099, discount: 0, sizes: ["L", "XL", "XXL"] };
           }
