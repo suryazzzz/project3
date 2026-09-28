@@ -2666,7 +2666,36 @@ const SALWARS=[
     stock: 11,
     mood: ["festive", "statement"]
   },
-  {id:25,name:"SRITHI Atelier Boutique Festive Salwar Set",category:"Salwars",price:2499,originalPrice:3499,discount:28,images:["images/salwars/srithi-couture-signature-rack.jpg"],fabric:"Chanderi Silk & Organza Blend",color:"Curated Pastel Palette",pattern:"Handcrafted Boutique Embroidery & Tassels",occasion:"Wedding Festive / Premium Boutique Collection",setIncludes:["Designer Embroidered Kurta","Coordinated Bottom","Artisan Dupatta"],description:"Official SRITHI The Couture flagship collection curation featuring premium hand-embroidered pastels, festive necklines, and opulent drapes crafted for modern ethnic charm.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:true,rating:5.0,reviews:215,stock:10,mood:["festive","statement"]},
+  {
+    id: 25,
+    name: "Jute Cotton Salwar Set",
+    category: "Salwars",
+    price: 2099,
+    originalPrice: 2099,
+    discount: 0,
+    images: [
+      "images/salwars/terracotta-peach-jute-cotton-salwar-01.webp",
+      "images/salwars/terracotta-peach-jute-cotton-salwar-02.webp",
+      "images/salwars/terracotta-peach-jute-cotton-salwar-03.webp"
+    ],
+    fabric: "Jute Cotton",
+    color: "Peach Beige with Terracotta Rust",
+    pattern: "Floral Jaal Block Print & Hand Pearl-Embroidered Notch Neckline",
+    occasion: "Festive / Celebration / Elegant Daily Luxury",
+    setIncludes: [
+      "Jute Cotton Kurti (Length: 45 inches)",
+      "Straight Cut Pant (Length: 37 inches, Full Elastic)",
+      "Coordinated Block Print Shawl / Dupatta (Length: 2.8M)"
+    ],
+    description: "Charming peach beige Jute Cotton salwar suit ensemble adorned with delicate terracotta floral jaal block prints and an artisanal hand-embroidered notch neckline with pearl beads and mirror-work accents, paired with matching 37-inch straight cut full-elastic trousers and a 2.8-meter coordinated printed shawl.",
+    sizes: ["L", "XL", "XXL", "3XL"],
+    isNew: true,
+    isBestSeller: true,
+    rating: 4.9,
+    reviews: 74,
+    stock: 14,
+    mood: ["festive", "statement"]
+  },
   {id:10,name:"Floral Printed Cotton Salwar Set",category:"Salwars",price:1199,originalPrice:1599,discount:25,images:["images/salwars/floral-cotton.jpg"],fabric:"Cotton",color:"Pink",pattern:"Floral Print",occasion:"Casual / Daily Wear",setIncludes:["Kameez","Salwar Bottom","Dupatta"],description:"Bright and comfortable floral printed cotton salwar set. Lightweight and breathable, perfect for daily wear.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:false,rating:4.5,reviews:143,stock:40,mood:["everyday"]},
   {id:11,name:"Embroidered Anarkali Salwar Set",category:"Salwars",price:1899,originalPrice:2499,discount:24,images:["images/salwars/embroidered-anarkali.jpg"],fabric:"Georgette",color:"Maroon",pattern:"Floral Embroidery",occasion:"Festive / Party",setIncludes:["Anarkali Kameez","Salwar Bottom","Dupatta"],description:"Graceful Anarkali style salwar set with detailed embroidery work. Ideal for festive occasions and family functions.",sizes:["S","M","L","XL","XXL"],isNew:false,isBestSeller:true,rating:4.8,reviews:97,stock:18,mood:["festive","occasion"]},
   {id:12,name:"Straight Cut Printed Salwar Set",category:"Salwars",price:1299,originalPrice:1699,discount:24,images:["images/salwars/straight-cut.jpg"],fabric:"Rayon",color:"Sky Blue",pattern:"Geometric Print",occasion:"Office / Casual",setIncludes:["Kameez","Salwar Bottom","Dupatta"],description:"Elegant straight-cut salwar set with contemporary geometric print. Versatile enough for office and casual outings.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:false,rating:4.4,reviews:62,stock:25,mood:["everyday"]},
@@ -6191,7 +6220,7 @@ function App(){
       const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
       if (saved) {
         let parsed = JSON.parse(saved);
-        [1, 2, 3, 4, 21, 22, 23, 24, 26, 27].forEach(targetId => {
+        [1, 2, 3, 4, 21, 22, 23, 24, 25, 26, 27].forEach(targetId => {
           const fresh = ALL_PRODUCTS.find(p => p.id === targetId);
           if (fresh) {
             if (parsed.some(p => p.id === targetId)) {
@@ -6203,6 +6232,9 @@ function App(){
         });
         // Sanitize and guarantee correct numeric prices & zero discounts for uploaded items
         parsed = parsed.map(p => {
+          if (p.id === 25) {
+            return { ...p, price: 2099, originalPrice: 2099, discount: 0, sizes: ["L", "XL", "XXL", "3XL"] };
+          }
           if (p.id === 24) {
             return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["L", "XL", "XXL"] };
           }
