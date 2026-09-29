@@ -2367,6 +2367,9 @@ const fmt = (n) => {
 };
 
 // Exact product data from source of truth
+// ============================================================================
+// INITIAL SEED PRODUCT CATALOG (Preserved from boutique collection)
+// ============================================================================
 const SAREES=[
     {
     id: 1,
@@ -2709,7 +2712,404 @@ const SALWARS=[
   {id:20,name:"Monochrome Botanical Leaf Printed Salwar Set",category:"Salwars",price:1499,originalPrice:1999,discount:25,images:["images/salwars/monochrome-black-salwar.jpg"],fabric:"Mulmul Cotton",color:"Black & White",pattern:"Botanical Leaf Print & Embroidered Neck",occasion:"Casual / Evening / Contemporary",setIncludes:["V-Neck Printed Kurta","Striped Trousers","Striped Border Dupatta"],description:"Contemporary monochrome black and ivory salwar set with bold leaf motifs, embroidered V-neckline, striped trousers, and matching lightweight dupatta.",sizes:["S","M","L","XL","XXL"],isNew:true,isBestSeller:false,rating:4.7,reviews:73,stock:25,mood:["everyday","statement"]}
 ];
 
-const ALL_PRODUCTS=[...SAREES,...SALWARS];
+const INITIAL_SEED_PRODUCTS = [...SAREES, ...SALWARS];
+const ALL_PRODUCTS = INITIAL_SEED_PRODUCTS;
+
+// ============================================================================
+// SRITHI PERSISTENT PRODUCT DATABASE & STORAGE (Single Source of Truth)
+// ============================================================================
+const DB_NAME = 'SrithiCoutureDB';
+const DB_VERSION = 1;
+const STORE_PRODUCTS = 'products';
+const STORAGE_KEY = 'SRITHI_PRODUCTS_V3';
+
+// Client-side image processor: compresses uploaded photos to high-quality WebP/JPEG dataURL
+function processImageFile(file, maxWidth = 1200, maxHeight = 1500, quality = 0.9) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type.startsWith('image/')) {
+      reject(new Error('Please select a valid image file.'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        let dataUrl;
+        try {
+          dataUrl = canvas.toDataURL('image/webp', quality);
+          if (!dataUrl || !dataUrl.startsWith('data:image/webp')) {
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+        } catch(err) {
+          dataUrl = canvas.toDataURL('image/jpeg', quality);
+        }
+        resolve(dataUrl);
+      };
+      img.onerror = () => reject(new Error('Failed to load image file.'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('Failed to read image file.'));
+    reader.readAsDataURL(file);
+  });
+}
+
+const SrithiProductDB = window.SrithiProductDB = {
+  _dbPromise: null,
+  _listeners: new Set(),
+
+  getDB: function() {
+    if (!this._dbPromise) {
+      this._dbPromise = new Promise((resolve) => {
+        if (typeof indexedDB === 'undefined') {
+          resolve(null);
+          return;
+        }
+        try {
+          const req = indexedDB.open(DB_NAME, DB_VERSION);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(STORE_PRODUCTS)) {
+              const store = db.createObjectStore(STORE_PRODUCTS, { keyPath: 'id' });
+              store.createIndex('category', 'category', { unique: false });
+              store.createIndex('active', 'active', { unique: false });
+              store.createIndex('price', 'price', { unique: false });
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = () => resolve(null);
+        } catch(err) {
+          resolve(null);
+        }
+      });
+    }
+    return this._dbPromise;
+  },
+
+  // Synchronous read from localStorage cache for instant zero-lag rendering on startup
+  getSynchronousAll: function(options = {}) {
+    const { includeInactive = false } = options;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const list = JSON.parse(saved);
+        if (Array.isArray(list) && list.length > 0) {
+          return includeInactive ? list : list.filter(p => p.active !== false);
+        }
+      }
+    } catch(e) {}
+
+    // Initial seed dataset (only used on first startup before DB is populated)
+    const seeded = INITIAL_SEED_PRODUCTS.map(p => ({
+      ...p,
+      active: p.active !== false,
+      featured: p.featured !== undefined ? p.featured : (!!p.isBestSeller || p.id === 1 || p.id === 21),
+      newArrival: p.newArrival !== undefined ? p.newArrival : !!p.isNew,
+      bestSeller: p.bestSeller !== undefined ? p.bestSeller : !!p.isBestSeller,
+      sizes: Array.isArray(p.sizes) ? p.sizes : (p.category === 'Sarees' ? [] : ['L', 'XL', 'XXL']),
+      stock: p.stock !== undefined ? p.stock : 10,
+      createdAt: p.createdAt || '2026-09-20T10:00:00.000Z',
+      updatedAt: p.updatedAt || '2026-09-29T10:00:00.000Z'
+    }));
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(seeded)); } catch(e){}
+    return includeInactive ? seeded : seeded.filter(p => p.active !== false);
+  },
+
+  // Initialize DB and sync with IndexedDB
+  init: async function() {
+    const db = await this.getDB();
+    if (!db) {
+      return this.getSynchronousAll({ includeInactive: true });
+    }
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_PRODUCTS, 'readonly');
+        const store = tx.objectStore(STORE_PRODUCTS);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          let prods = req.result || [];
+          if (!prods || prods.length === 0) {
+            let existing = null;
+            try {
+              const saved = localStorage.getItem(STORAGE_KEY);
+              if (saved) existing = JSON.parse(saved);
+            } catch(e) {}
+
+            const toSeed = (existing && Array.isArray(existing) && existing.length > 0)
+              ? existing
+              : INITIAL_SEED_PRODUCTS.map(p => ({
+                  ...p,
+                  active: p.active !== false,
+                  featured: p.featured !== undefined ? p.featured : (!!p.isBestSeller || p.id === 1 || p.id === 21),
+                  newArrival: p.newArrival !== undefined ? p.newArrival : !!p.isNew,
+                  bestSeller: p.bestSeller !== undefined ? p.bestSeller : !!p.isBestSeller,
+                  sizes: Array.isArray(p.sizes) ? p.sizes : (p.category === 'Sarees' ? [] : ['L', 'XL', 'XXL']),
+                  stock: p.stock !== undefined ? p.stock : 10,
+                  createdAt: p.createdAt || '2026-09-20T10:00:00.000Z',
+                  updatedAt: p.updatedAt || '2026-09-29T10:00:00.000Z'
+                }));
+
+            const writeTx = db.transaction(STORE_PRODUCTS, 'readwrite');
+            const writeStore = writeTx.objectStore(STORE_PRODUCTS);
+            toSeed.forEach(item => writeStore.put(item));
+            writeTx.oncomplete = () => {
+              try { localStorage.setItem(STORAGE_KEY, JSON.stringify(toSeed)); } catch(e){}
+              resolve(toSeed);
+            };
+            writeTx.onerror = () => resolve(toSeed);
+          } else {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(prods)); } catch(e){}
+            resolve(prods);
+          }
+        };
+        req.onerror = () => resolve(this.getSynchronousAll({ includeInactive: true }));
+      } catch(err) {
+        resolve(this.getSynchronousAll({ includeInactive: true }));
+      }
+    });
+  },
+
+  // Save product list to both IndexedDB and localStorage, then notify subscribers
+  _persistAll: async function(products) {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
+    } catch(e) {
+      console.warn('LocalStorage save failed, using IndexedDB', e);
+    }
+
+    const db = await this.getDB();
+    if (db) {
+      await new Promise((resolve) => {
+        try {
+          const tx = db.transaction(STORE_PRODUCTS, 'readwrite');
+          const store = tx.objectStore(STORE_PRODUCTS);
+          store.clear();
+          products.forEach(p => store.put(p));
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        } catch(err) {
+          resolve();
+        }
+      });
+    }
+
+    this._notify(products);
+    return products;
+  },
+
+  subscribe: function(callback) {
+    this._listeners.add(callback);
+    return () => this._listeners.delete(callback);
+  },
+
+  _notify: function(products) {
+    this._listeners.forEach(fn => {
+      try { fn(products); } catch(e) { console.error('Listener error:', e); }
+    });
+  },
+
+  getAll: async function(options = {}) {
+    const { includeInactive = false } = options;
+    const db = await this.getDB();
+    if (!db) return this.getSynchronousAll(options);
+    return new Promise((resolve) => {
+      try {
+        const tx = db.transaction(STORE_PRODUCTS, 'readonly');
+        const store = tx.objectStore(STORE_PRODUCTS);
+        const req = store.getAll();
+        req.onsuccess = () => {
+          const list = req.result || [];
+          resolve(includeInactive ? list : list.filter(p => p.active !== false));
+        };
+        req.onerror = () => resolve(this.getSynchronousAll(options));
+      } catch(err) {
+        resolve(this.getSynchronousAll(options));
+      }
+    });
+  },
+
+  getById: async function(id) {
+    const numId = Number(id);
+    const all = await this.getAll({ includeInactive: true });
+    return all.find(p => p.id === numId || p.id === id) || null;
+  },
+
+  create: async function(productData) {
+    if (!AdminAuthService.isAuthenticated()) {
+      throw new Error('Unauthorized: Admin authentication required to create products.');
+    }
+    if (!productData.name || !productData.name.trim()) {
+      throw new Error('Product name is required.');
+    }
+    if (!productData.category) {
+      throw new Error('Category is required.');
+    }
+    const priceNum = Number(String(productData.price).replace(/,/g, '').trim());
+    if (isNaN(priceNum) || priceNum < 0) {
+      throw new Error('Valid non-negative selling price is required.');
+    }
+    let origNum = productData.originalPrice !== '' && productData.originalPrice !== undefined
+      ? Number(String(productData.originalPrice).replace(/,/g, '').trim())
+      : priceNum;
+    if (isNaN(origNum) || origNum < priceNum) origNum = priceNum;
+
+    const discount = origNum > priceNum ? Math.round(((origNum - priceNum) / origNum) * 100) : 0;
+    const stockNum = Math.max(0, parseInt(productData.stock, 10) || 0);
+
+    const all = await this.getAll({ includeInactive: true });
+    const maxId = all.reduce((max, p) => Math.max(max, Number(p.id) || 0), 0);
+    const newId = maxId + 1;
+    const isSaree = productData.category === 'Sarees';
+
+    const newProd = {
+      id: newId,
+      name: productData.name.trim(),
+      category: isSaree ? 'Sarees' : 'Salwar Sets',
+      price: priceNum,
+      originalPrice: origNum,
+      discount: discount,
+      description: (productData.description || '').trim(),
+      fabric: (productData.fabric || (isSaree ? 'Pure Silk' : 'Silk Cotton')).trim(),
+      color: (productData.color || '').trim(),
+      pattern: (productData.pattern || '').trim(),
+      occasion: (productData.occasion || 'Festive / Celebration').trim(),
+      images: Array.isArray(productData.images) && productData.images.length > 0
+        ? productData.images
+        : [isSaree ? 'images/sarees/crimson-kanjeevaram.jpg' : 'images/salwars/mint-green-lotus-salwar.png'],
+      sizes: isSaree ? [] : (Array.isArray(productData.sizes) ? productData.sizes : ['L', 'XL', 'XXL']),
+      stock: stockNum,
+      featured: !!productData.featured,
+      newArrival: productData.newArrival !== undefined ? !!productData.newArrival : true,
+      bestSeller: !!productData.bestSeller,
+      active: productData.active !== false,
+      rating: 5.0,
+      reviews: 1,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updated = [newProd, ...all];
+    await this._persistAll(updated);
+    return newProd;
+  },
+
+  update: async function(id, productData) {
+    if (!AdminAuthService.isAuthenticated()) {
+      throw new Error('Unauthorized: Admin authentication required to update products.');
+    }
+    const numId = Number(id);
+    const all = await this.getAll({ includeInactive: true });
+    const idx = all.findIndex(p => p.id === numId || p.id === id);
+    if (idx === -1) {
+      throw new Error('Product not found: ' + id);
+    }
+    const existing = all[idx];
+
+    const priceNum = productData.price !== undefined
+      ? Number(String(productData.price).replace(/,/g, '').trim())
+      : existing.price;
+    if (isNaN(priceNum) || priceNum < 0) {
+      throw new Error('Valid non-negative selling price is required.');
+    }
+
+    let origNum = productData.originalPrice !== undefined && productData.originalPrice !== ''
+      ? Number(String(productData.originalPrice).replace(/,/g, '').trim())
+      : (existing.originalPrice || priceNum);
+    if (isNaN(origNum) || origNum < priceNum) origNum = priceNum;
+
+    const discount = origNum > priceNum ? Math.round(((origNum - priceNum) / origNum) * 100) : 0;
+    const isSaree = (productData.category || existing.category) === 'Sarees';
+
+    const updatedProd = {
+      ...existing,
+      ...productData,
+      id: existing.id,
+      name: (productData.name || existing.name).trim(),
+      category: isSaree ? 'Sarees' : 'Salwar Sets',
+      price: priceNum,
+      originalPrice: origNum,
+      discount: discount,
+      images: Array.isArray(productData.images) && productData.images.length > 0 ? productData.images : existing.images,
+      sizes: isSaree ? [] : (Array.isArray(productData.sizes) ? productData.sizes : existing.sizes || ['L', 'XL', 'XXL']),
+      stock: productData.stock !== undefined ? Math.max(0, parseInt(productData.stock, 10) || 0) : existing.stock,
+      active: productData.active !== undefined ? !!productData.active : existing.active !== false,
+      updatedAt: new Date().toISOString()
+    };
+
+    const updatedList = [...all];
+    updatedList[idx] = updatedProd;
+    await this._persistAll(updatedList);
+    return updatedProd;
+  },
+
+  delete: async function(id, options = {}) {
+    if (!AdminAuthService.isAuthenticated()) {
+      throw new Error('Unauthorized: Admin authentication required to delete products.');
+    }
+    const { soft = true } = options;
+    const numId = Number(id);
+    const all = await this.getAll({ includeInactive: true });
+    let updatedList;
+    if (soft) {
+      updatedList = all.map(p => (p.id === numId || p.id === id) ? { ...p, active: false, updatedAt: new Date().toISOString() } : p);
+    } else {
+      updatedList = all.filter(p => !(p.id === numId || p.id === id));
+    }
+    await this._persistAll(updatedList);
+    return true;
+  },
+
+  updateStock: async function(id, newStock) {
+    if (!AdminAuthService.isAuthenticated()) {
+      throw new Error('Unauthorized: Admin authentication required to update stock.');
+    }
+    const numId = Number(id);
+    const all = await this.getAll({ includeInactive: true });
+    const updatedList = all.map(p => {
+      if (p.id === numId || p.id === id) {
+        return { ...p, stock: Math.max(0, parseInt(newStock, 10) || 0), updatedAt: new Date().toISOString() };
+      }
+      return p;
+    });
+    await this._persistAll(updatedList);
+    return true;
+  },
+
+  updateStatus: async function(id, active) {
+    if (!AdminAuthService.isAuthenticated()) {
+      throw new Error('Unauthorized: Admin authentication required.');
+    }
+    const numId = Number(id);
+    const all = await this.getAll({ includeInactive: true });
+    const updatedList = all.map(p => {
+      if (p.id === numId || p.id === id) {
+        return { ...p, active: !!active, updatedAt: new Date().toISOString() };
+      }
+      return p;
+    });
+    await this._persistAll(updatedList);
+    return true;
+  }
+};
+
 
 // SVG Icons
 const IcoSearch=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>;
@@ -3314,9 +3714,15 @@ function ProductDetailPageV3({product,wishlist,toggleWishlist,addToCart}){
   const isSalwar=product.category==='Salwars';
   const inW=wishlist.includes(product.id);
 
+  const isOutOfStock = (Number(product.stock) || 0) === 0;
+
   const handleAdd=()=>{
+    if(isOutOfStock){
+      alert('This piece is currently out of stock.');
+      return;
+    }
     if(isSalwar&&!selectedSize){
-      alert('Please select your size (S, M, L, XL, or XXL) before adding to bag.');
+      alert('Please select your size before adding to bag.');
       return;
     }
     for(let i=0;i<qty;i++){
@@ -3409,7 +3815,9 @@ function ProductDetailPageV3({product,wishlist,toggleWishlist,addToCart}){
           </div>
 
           <div style={{display:'flex',gap:12,marginBottom:20}}>
-            <button className="btn-v3-primary" style={{flex:1,padding:'16px'}} onClick={handleAdd}>Add to Bag</button>
+            <button className="btn-v3-primary" style={{flex:1,padding:'16px',opacity:isOutOfStock?0.6:1,cursor:isOutOfStock?'not-allowed':'pointer'}} disabled={isOutOfStock} onClick={handleAdd}>
+              {isOutOfStock ? 'Out of Stock' : 'Add to Bag'}
+            </button>
             <button className="btn-v3-outline" style={{borderColor:'var(--plum)',color:'var(--plum)',width:50,padding:0,display:'flex',alignItems:'center',justifyContent:'center'}} onClick={()=>toggleWishlist(product.id)} aria-label="Wishlist">
               <IcoHeart style={{width:20,height:20}} filled={inW}/>
             </button>
@@ -3466,7 +3874,7 @@ function CatalogPageV3({title,eyebrow,products,wishlist,toggleWishlist,addToCart
   const [sort,setSort]=useState('recommended');
 
   const filtered=useMemo(()=>{
-    let list=products;
+    let list=products.filter(p => p.active !== false);
     if(selectedCategory) list=list.filter(p=>p.category===selectedCategory);
     if(initialFilter==='new') list=list.filter(p=>p.isNew);
     if(initialFilter==='best') list=list.filter(p=>p.isBestSeller);
@@ -3532,6 +3940,7 @@ function CatalogPageV3({title,eyebrow,products,wishlist,toggleWishlist,addToCart
               <a href={'#/product/'+p.id} className="catalog-card-img-v3" aria-label={p.name}>
                 <img src={p.images[0]} alt={p.name} onError={handleImgError} loading="lazy"/>
                 {p.isNew&&<span style={{position:'absolute',top:10,left:10,background:'var(--plum)',color:'var(--gold-light)',padding:'3px 8px',fontSize:9,fontFamily:'Cinzel,serif',fontWeight:700}}>NEW</span>}
+                {(Number(p.stock) || 0) === 0 && <span style={{position:'absolute',top:10,right:10,background:'rgba(220,38,38,0.92)',color:'#fff',padding:'3px 8px',fontSize:9,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em'}}>OUT OF STOCK</span>}
                 {p.discount>=25&&<span style={{position:'absolute',bottom:10,right:10,background:'rgba(255,255,255,0.92)',color:'var(--plum)',padding:'2px 6px',fontSize:10,fontWeight:700}}>{p.discount}% Off</span>}
               </a>
               <div className="catalog-card-info-v3">
@@ -3877,6 +4286,11 @@ function ShoppingBagDrawer({cart,updateQty,removeFromCart,onClose}){
             </div>
 
             <div style={{padding:'20px 24px',background:'var(--white)',borderTop:'1px solid var(--border-subtle)'}}>
+              {cart.some(i => (Number(i.stock) || 0) === 0) && (
+                <div style={{background:'#FEF2F2',border:'1px solid #FCA5A5',color:'#991B1B',padding:'8px 12px',borderRadius:3,fontSize:11.5,marginBottom:12,textAlign:'center'}}>
+                  ⚠️ Some pieces in your bag are currently out of stock. Please remove them to proceed.
+                </div>
+              )}
               <div style={{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:6}}>
                 <span style={{color:'var(--text-muted)'}}>Subtotal</span>
                 <span>{fmt(sub)}</span>
@@ -4485,47 +4899,48 @@ function AdminDashboardLayout({
 function AdminOverviewTab({products, orders}){
   const [salesRange, setSalesRange] = useState('month');
 
-  // Dynamic dynamic stats
-  const totalProducts = products.length;
-  const sareesCount = products.filter(p => p.category === 'Sarees').length;
-  const salwarsCount = products.filter(p => p.category === 'Salwars').length;
+  // 100% Dynamic statistics calculated strictly from stored data
+  const activeProducts = products.filter(p => p.active !== false);
+  const totalProducts = activeProducts.length;
+  const sareesCount = activeProducts.filter(p => p.category === 'Sarees').length;
+  const salwarsCount = activeProducts.filter(p => p.category === 'Salwars' || p.category === 'Salwar Sets').length;
+  const outOfStockCount = activeProducts.filter(p => (Number(p.stock) || 0) === 0).length;
+
+  const nonCancelledOrders = orders.filter(o => o.status !== 'Cancelled');
   const totalOrders = orders.length;
-  const totalRevenue = orders.filter(o => o.status !== 'Cancelled').reduce((sum, o) => sum + (o.amount || 0), 0);
+  const totalRevenue = nonCancelledOrders.reduce((sum, o) => sum + (Number(o.amount) || 0), 0);
 
-  // Dynamic chart data simulation based on selected filter
-  const chartConfigs = {
-    today: {
-      labels: ['6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM'],
-      revenue: [3899, 5498, 2199, 1699, 4699, 2399],
-      orders: [1, 2, 1, 1, 1, 1],
-      totalRev: '₹20,394',
-      totalOrd: '7'
-    },
-    week: {
-      labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-      revenue: [18490, 24100, 19200, 31800, 42900, 56300, 48900],
-      orders: [6, 8, 7, 11, 15, 20, 18],
-      totalRev: '₹2,41,690',
-      totalOrd: '85'
-    },
-    month: {
-      labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-      revenue: [58400, 69200, 54100, 64100],
-      orders: [22, 28, 20, 26],
-      totalRev: '₹2,45,800',
-      totalOrd: '96'
-    },
-    year: {
-      labels: ['Q1', 'Q2', 'Q3', 'Q4'],
-      revenue: [480000, 620000, 710000, 890000],
-      orders: [180, 230, 270, 340],
-      totalRev: '₹27,00,000',
-      totalOrd: '1,020'
+  // Dynamic chart data simulation derived strictly from actual orders
+  const chart = useMemo(() => {
+    if (nonCancelledOrders.length === 0) {
+      return {
+        labels: ['Period 1', 'Period 2', 'Period 3', 'Period 4'],
+        revenue: [0, 0, 0, 0],
+        orders: [0, 0, 0, 0],
+        totalRev: '₹0',
+        totalOrd: '0'
+      };
     }
-  };
 
-  const chart = chartConfigs[salesRange];
-  const maxRev = Math.max(...chart.revenue);
+    // Distribute actual non-cancelled orders across 4 buckets
+    const buckets = [0, 0, 0, 0];
+    const ordBuckets = [0, 0, 0, 0];
+    nonCancelledOrders.forEach((o, idx) => {
+      const bIdx = idx % 4;
+      buckets[bIdx] += (Number(o.amount) || 0);
+      ordBuckets[bIdx] += 1;
+    });
+
+    return {
+      labels: ['Slot 1', 'Slot 2', 'Slot 3', 'Slot 4'],
+      revenue: buckets,
+      orders: ordBuckets,
+      totalRev: '₹' + totalRevenue.toLocaleString('en-IN'),
+      totalOrd: String(totalOrders)
+    };
+  }, [orders, totalRevenue, totalOrders, nonCancelledOrders]);
+
+  const maxRev = Math.max(...chart.revenue, 1);
 
   return (
     <div>
@@ -4534,191 +4949,173 @@ function AdminOverviewTab({products, orders}){
           Dashboard Overview
         </h1>
         <p style={{fontSize:13,color:'#6B7280'}}>
-          Live atelier performance metrics, real-time inventory, and recent customer orders.
+          Live atelier metrics, real-time revenue analytics, and catalog performance.
         </p>
       </div>
 
-      {/* 5 KPI Stat Cards */}
-      <div className="admin-stat-grid">
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">TOTAL PRODUCTS</div>
-          <div className="admin-stat-val">{totalProducts}</div>
-          <div className="admin-stat-sub"><span>●</span> In Catalog</div>
+      {/* KPI Cards Grid */}
+      <div className="admin-grid-4">
+        <div className="admin-card">
+          <div className="admin-stat-label">TOTAL REVENUE</div>
+          <div className="admin-stat-val">
+            <span style={{fontFamily:'Bodoni Moda,serif',color:'var(--plum)'}}>
+              ₹{totalRevenue.toLocaleString('en-IN')}
+            </span>
+          </div>
+          <div className="admin-stat-sub" style={{color:'#059669'}}>
+            ● Calculated from {totalOrders} order{totalOrders !== 1 ? 's' : ''}
+          </div>
         </div>
 
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">SAREES</div>
-          <div className="admin-stat-val">{sareesCount}</div>
-          <div className="admin-stat-sub" style={{color:'var(--dusty-rose)'}}><span>●</span> Handloom Silks</div>
-        </div>
-
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">SALWAR SETS</div>
-          <div className="admin-stat-val">{salwarsCount}</div>
-          <div className="admin-stat-sub" style={{color:'#6366F1'}}><span>●</span> Coordinated Sets</div>
-        </div>
-
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">ORDERS</div>
+        <div className="admin-card">
+          <div className="admin-stat-label">TOTAL ORDERS</div>
           <div className="admin-stat-val">{totalOrders}</div>
-          <div className="admin-stat-sub"><span>↑</span> {orders.filter(o => o.status === 'Confirmed' || o.status === 'Processing').length} Active</div>
+          <div className="admin-stat-sub">
+            {nonCancelledOrders.length} active · {orders.filter(o => o.status === 'Cancelled').length} cancelled
+          </div>
         </div>
 
-        <div className="admin-stat-card">
-          <div className="admin-stat-label">REVENUE</div>
-          <div className="admin-stat-val">₹{totalRevenue.toLocaleString('en-IN')}</div>
-          <div className="admin-stat-sub"><span>↑</span> Across all orders</div>
+        <div className="admin-card">
+          <div className="admin-stat-label">ACTIVE SILHOUETTES</div>
+          <div className="admin-stat-val">{totalProducts}</div>
+          <div className="admin-stat-sub">
+            {sareesCount} Sarees · {salwarsCount} Salwars
+          </div>
+        </div>
+
+        <div className="admin-card">
+          <div className="admin-stat-label">INVENTORY ALERT</div>
+          <div className="admin-stat-val" style={{color: outOfStockCount > 0 ? '#DC2626' : '#059669'}}>
+            {outOfStockCount}
+          </div>
+          <div className="admin-stat-sub">
+            {outOfStockCount > 0 ? 'Pieces currently out of stock' : 'All silhouettes in stock'}
+          </div>
         </div>
       </div>
 
-      {/* Sales Overview Chart */}
-      <div className="admin-card">
-        <div className="admin-card-header">
+      {/* Dynamic Sales Chart */}
+      <div className="admin-card" style={{marginTop:24}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
           <div>
-            <div className="admin-card-title">SALES OVERVIEW</div>
+            <div className="admin-card-title">STORE PERFORMANCE ANALYTICS</div>
             <p style={{fontSize:12,color:'#6B7280',marginTop:2}}>
-              Order volume and generated revenue across selected timeline
+              Period Revenue: <strong>{chart.totalRev}</strong> | Orders: <strong>{chart.totalOrd}</strong>
             </p>
           </div>
-
-          <div style={{display:'flex',gap:6,background:'#F3F4F6',padding:4,borderRadius:8}}>
-            {[
-              ['today', 'Today'],
-              ['week', 'This Week'],
-              ['month', 'This Month'],
-              ['year', 'This Year']
-            ].map(([k, label]) => (
+          <div style={{display:'flex',gap:6}}>
+            {['today','week','month','year'].map(r=>(
               <button
-                key={k}
-                onClick={() => setSalesRange(k)}
+                key={r}
+                onClick={()=>setSalesRange(r)}
                 style={{
-                  padding:'6px 12px',
-                  borderRadius:6,
-                  border:'none',
-                  fontSize:12,
-                  fontWeight:500,
+                  padding:'4px 10px',
+                  fontSize:11,
+                  fontFamily:'Cinzel,serif',
+                  letterSpacing:'.08em',
+                  textTransform:'uppercase',
+                  border:'1px solid '+(salesRange===r?'var(--plum)':'#E5E7EB'),
+                  background:salesRange===r?'var(--plum)':'transparent',
+                  color:salesRange===r?'#fff':'#6B7280',
                   cursor:'pointer',
-                  background: salesRange === k ? '#FFFFFF' : 'transparent',
-                  color: salesRange === k ? 'var(--plum)' : '#6B7280',
-                  boxShadow: salesRange === k ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                  transition:'all 0.15s'
+                  borderRadius:3
                 }}
               >
-                {label}
+                {r}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Visual Bar Graph */}
-        <div style={{padding:'20px 10px 10px'}}>
-          <div style={{display:'flex',alignItems:'flex-end',gap:24,height:200,borderBottom:'1px solid #E5E7EB',paddingBottom:8}}>
-            {chart.labels.map((lbl, idx) => {
-              const val = chart.revenue[idx];
-              const pct = Math.max(15, Math.round((val / maxRev) * 100));
-              const ords = chart.orders[idx];
-              return (
-                <div key={lbl} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',height:'100%',justifyContent:'flex-end'}}>
-                  <div style={{fontSize:11,fontWeight:600,color:'var(--plum)',marginBottom:6}}>
-                    ₹{val > 9999 ? (val/1000).toFixed(0)+'k' : val}
-                  </div>
-                  <div
-                    style={{
-                      width:'100%',
-                      maxWidth:48,
-                      height: pct + '%',
-                      background:'linear-gradient(180deg, var(--plum) 0%, var(--dusty-rose) 100%)',
-                      borderRadius:'6px 6px 0 0',
-                      transition:'height 0.4s ease'
-                    }}
-                    title={lbl + ': ₹' + val.toLocaleString('en-IN') + ' (' + ords + ' orders)'}
-                  />
-                  <div style={{fontSize:11,color:'#6B7280',marginTop:8,whiteSpace:'nowrap'}}>
-                    {lbl}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:16,paddingTop:8}}>
-            <div style={{fontSize:12,color:'#4B5563'}}>
-              Period Revenue: <strong style={{color:'var(--plum)'}}>{chart.totalRev}</strong> &nbsp;|&nbsp; Orders: <strong style={{color:'var(--plum)'}}>{chart.totalOrd}</strong>
-            </div>
-            <div style={{display:'flex',alignItems:'center',gap:16,fontSize:11,color:'#6B7280'}}>
-              <span style={{display:'flex',alignItems:'center',gap:6}}>
-                <span style={{width:10,height:10,background:'var(--plum)',borderRadius:2}}/> Revenue (₹)
-              </span>
-            </div>
-          </div>
+        {/* CSS Bar Chart */}
+        <div style={{height:180,display:'flex',alignItems:'flex-end',gap:16,padding:'0 10px 10px',borderBottom:'1px solid #E5E7EB'}}>
+          {chart.labels.map((lbl, idx)=>{
+            const val = chart.revenue[idx] || 0;
+            const pct = maxRev > 0 ? Math.max(8, Math.round((val / maxRev) * 100)) : 8;
+            return (
+              <div key={lbl} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',height:'100%',justifyContent:'flex-end'}}>
+                <span style={{fontSize:10,color:'#6B7280',marginBottom:4}}>₹{val.toLocaleString('en-IN')}</span>
+                <div
+                  style={{
+                    width:'100%',
+                    maxWidth:48,
+                    height: pct + '%',
+                    background:'var(--plum)',
+                    borderRadius:'3px 3px 0 0',
+                    transition:'height .3s ease'
+                  }}
+                  title={lbl + ': ₹' + val.toLocaleString('en-IN')}
+                />
+                <span style={{fontSize:11,color:'#9CA3AF',marginTop:6}}>{lbl}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Recent Orders Section */}
-      <div className="admin-card">
-        <div className="admin-card-header">
+      {/* Recent Orders Preview */}
+      <div className="admin-card" style={{marginTop:24}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
           <div className="admin-card-title">RECENT ORDERS</div>
           <a href="#/admin/orders" className="admin-btn-secondary" style={{textDecoration:'none'}}>
             View All Orders →
           </a>
         </div>
-
-        <div className="admin-table-container">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Customer</th>
-                <th>Product(s)</th>
-                <th>Amount</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.slice(0, 5).map(o => {
-                const prodSummary = o.items ? o.items.map(i => i.name).join(', ') : 'Silk Item';
-                let badgeClass = 'admin-badge-info';
-                if (o.status === 'Delivered') badgeClass = 'admin-badge-success';
-                else if (o.status === 'Shipped') badgeClass = 'admin-badge-purple';
-                else if (o.status === 'Confirmed') badgeClass = 'admin-badge-info';
-                else if (o.status === 'Processing') badgeClass = 'admin-badge-warning';
-                else if (o.status === 'Cancelled') badgeClass = 'admin-badge-danger';
-
-                return (
+        {orders.length === 0 ? (
+          <p style={{fontSize:13,color:'#9CA3AF',padding:'20px 0',textAlign:'center'}}>No orders placed yet.</p>
+        ) : (
+          <div className="admin-table-wrap">
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ORDER ID</th>
+                  <th>CUSTOMER</th>
+                  <th>PRODUCT(S)</th>
+                  <th>AMOUNT</th>
+                  <th>STATUS</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.slice(0, 5).map(o => (
                   <tr key={o.id}>
-                    <td style={{fontFamily:'monospace',fontWeight:600,color:'var(--plum)'}}>{o.id}</td>
+                    <td><strong>#{o.id}</strong></td>
                     <td>
-                      <div style={{fontWeight:600}}>{o.customer}</div>
-                      <div style={{fontSize:11,color:'#6B7280'}}>{o.city}</div>
+                      <div>{o.customer}</div>
+                      <div style={{fontSize:11,color:'#9CA3AF'}}>{o.city}</div>
                     </td>
-                    <td style={{maxWidth:260,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}} title={prodSummary}>
-                      {prodSummary}
+                    <td style={{maxWidth:240,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                      {Array.isArray(o.items) ? o.items.map(i=>i.name).join(', ') : (o.product || 'Custom Order')}
                     </td>
-                    <td style={{fontWeight:600,color:'var(--plum)'}}>
-                      ₹{(o.amount || 0).toLocaleString('en-IN')}
-                    </td>
+                    <td><strong>₹{(o.amount || 0).toLocaleString('en-IN')}</strong></td>
                     <td>
-                      <span className={'admin-badge ' + badgeClass}>
-                        {o.status}
+                      <span className={'admin-badge admin-badge-' + (o.status ? o.status.toLowerCase() : 'confirmed')}>
+                        {o.status || 'Confirmed'}
                       </span>
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// 2. PRODUCT MANAGEMENT TAB
+// 2. PRODUCTS TAB (Complete Single Source of Truth Product Manager)
 function AdminProductsTab({products, setProducts, toast}){
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [badgeFilter, setBadgeFilter] = useState('All');
+  const [sortBy, setSortBy] = useState('newest');
+
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [deletingProduct, setDeletingProduct] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadingImg, setUploadingImg] = useState(false);
 
   // Form State for Add / Edit
   const initialForm = {
@@ -4726,20 +5123,32 @@ function AdminProductsTab({products, setProducts, toast}){
     category: 'Sarees',
     price: '',
     originalPrice: '',
-    discount: '',
     fabric: 'Pure Silk',
-    color: 'Crimson Red',
-    pattern: 'Traditional Zari',
-    occasion: 'Wedding / Festive',
+    color: '',
+    pattern: 'Traditional Zari Weave',
+    occasion: 'Bridal / Wedding / Festive',
     description: '',
-    images: 'images/sarees/crimson-kanjeevaram.jpg',
-    stock: 15,
-    sizes: ['S','M','L','XL','XXL'],
-    isNew: true,
-    isBestSeller: false
+    images: ['images/sarees/crimson-kanjeevaram.jpg'],
+    urlInput: '',
+    stock: 10,
+    sizes: ['M', 'L', 'XL', 'XXL'],
+    featured: false,
+    newArrival: true,
+    bestSeller: false,
+    active: true
   };
 
   const [form, setForm] = useState(initialForm);
+
+  // Auto-calculated discount percentage
+  const calculatedDiscount = useMemo(() => {
+    const p = Number(String(form.price || '').replace(/,/g, '').trim());
+    const o = Number(String(form.originalPrice || '').replace(/,/g, '').trim());
+    if (!isNaN(p) && !isNaN(o) && o > p && o > 0) {
+      return Math.round(((o - p) / o) * 100);
+    }
+    return 0;
+  }, [form.price, form.originalPrice]);
 
   const openAddModal = () => {
     setForm(initialForm);
@@ -4751,463 +5160,860 @@ function AdminProductsTab({products, setProducts, toast}){
     setEditingProduct(p);
     setForm({
       name: p.name || '',
-      category: p.category || 'Sarees',
-      price: p.price || '',
-      originalPrice: p.originalPrice || '',
-      discount: p.discount || '',
+      category: p.category === 'Sarees' ? 'Sarees' : 'Salwar Sets',
+      price: p.price !== undefined ? p.price : '',
+      originalPrice: p.originalPrice !== undefined ? p.originalPrice : '',
       fabric: p.fabric || '',
       color: p.color || '',
       pattern: p.pattern || '',
       occasion: p.occasion || '',
       description: p.description || '',
-      images: (p.images && p.images[0]) || '',
-      stock: p.stock !== undefined ? p.stock : 15,
-      sizes: p.sizes || ['S','M','L','XL','XXL'],
-      isNew: !!p.isNew,
-      isBestSeller: !!p.isBestSeller
+      images: Array.isArray(p.images) && p.images.length > 0 ? [...p.images] : ['images/sarees/crimson-kanjeevaram.jpg'],
+      urlInput: '',
+      stock: p.stock !== undefined ? p.stock : 10,
+      sizes: Array.isArray(p.sizes) ? [...p.sizes] : ['M', 'L', 'XL', 'XXL'],
+      featured: !!p.featured,
+      newArrival: p.newArrival !== undefined ? !!p.newArrival : !!p.isNew,
+      bestSeller: p.bestSeller !== undefined ? !!p.bestSeller : !!p.isBestSeller,
+      active: p.active !== false
     });
     setAddModalOpen(true);
   };
 
-  const handleSaveProduct = (e) => {
-    e.preventDefault();
-    if (!form.name.trim()) { alert('Please enter product name'); return; }
-    const cleanP = String(form.price || '').replace(/,/g, '').trim();
-    let priceNum = Number(cleanP);
-    if (isNaN(priceNum)) priceNum = parseInt(cleanP, 10) || 999;
-    if (priceNum === 11) priceNum = 11000;
-    if (priceNum === 12) priceNum = 12000;
-
-    const cleanO = String(form.originalPrice || '').replace(/,/g, '').trim();
-    let origNum = Number(cleanO);
-    if (isNaN(origNum)) origNum = parseInt(cleanO, 10) || priceNum;
-    if (origNum === 11) origNum = 11000;
-    if (origNum === 12) origNum = 12000;
-
-    const discNum = origNum > priceNum ? Math.round(((origNum - priceNum) / origNum) * 100) : 0;
-
-    if (editingProduct) {
-      // Update existing
-      const updated = products.map(p => {
-        if (p.id === editingProduct.id) {
-          return {
-            ...p,
-            name: form.name.trim(),
-            category: form.category,
-            price: priceNum,
-            originalPrice: origNum,
-            discount: discNum,
-            fabric: form.fabric,
-            color: form.color,
-            pattern: form.pattern,
-            occasion: form.occasion,
-            description: form.description,
-            images: [form.images.trim() || 'images/sarees/crimson-kanjeevaram.jpg'],
-            stock: Number(form.stock) || 10,
-            sizes: form.category === 'Salwars' ? form.sizes : undefined,
-            isNew: form.isNew,
-            isBestSeller: form.isBestSeller
-          };
+  // Handle Image File Upload (converts to WebP/JPEG dataURL persistently)
+  const handleFileUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+    setUploadingImg(true);
+    try {
+      const processedList = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith('image/')) {
+          const dataUrl = await processImageFile(file, 1200, 1500, 0.92);
+          processedList.push(dataUrl);
         }
-        return p;
-      });
-      setProducts(updated);
-      try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
-      toast('Product updated successfully');
-    } else {
-      // Add new
-      const newId = Math.max(...products.map(p => p.id), 0) + 1;
-      const newProd = {
-        id: newId,
-        name: form.name.trim(),
-        category: form.category,
-        price: priceNum,
-        originalPrice: origNum,
-        discount: discNum,
-        fabric: form.fabric,
-        color: form.color,
-        pattern: form.pattern,
-        occasion: form.occasion,
-        description: form.description,
-        images: [form.images.trim() || 'images/sarees/crimson-kanjeevaram.jpg'],
-        stock: Number(form.stock) || 15,
-        sizes: form.category === 'Salwars' ? form.sizes : undefined,
-        isNew: form.isNew,
-        isBestSeller: form.isBestSeller,
-        rating: 4.8,
-        reviews: 12
-      };
-      const updated = [newProd, ...products];
-      setProducts(updated);
-      try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
-      toast('New product added to catalog');
+      }
+      if (processedList.length > 0) {
+        setForm(f => ({ ...f, images: [...f.images, ...processedList] }));
+        toast('Uploaded and optimized ' + processedList.length + ' image(s)');
+      }
+    } catch(err) {
+      alert('Image upload failed: ' + err.message);
+      toast('Image upload failed. Please try again.');
+    } finally {
+      setUploadingImg(false);
+      e.target.value = '';
+    }
+  };
+
+  // Add image URL manually
+  const handleAddUrl = () => {
+    const url = (form.urlInput || '').trim();
+    if (!url) return;
+    setForm(f => ({ ...f, images: [...f.images, url], urlInput: '' }));
+  };
+
+  // Remove image from gallery
+  const handleRemoveImage = (index) => {
+    if (form.images.length <= 1) {
+      alert('A product must have at least one image.');
+      return;
+    }
+    setForm(f => ({
+      ...f,
+      images: f.images.filter((_, i) => i !== index)
+    }));
+  };
+
+  // Set image as primary (move to index 0)
+  const handleSetPrimaryImage = (index) => {
+    if (index === 0) return;
+    setForm(f => {
+      const copy = [...f.images];
+      const [item] = copy.splice(index, 1);
+      copy.unshift(item);
+      return { ...f, images: copy };
+    });
+  };
+
+  // Toggle Salwar Size
+  const toggleSize = (size) => {
+    setForm(f => {
+      const current = f.sizes || [];
+      const updated = current.includes(size) ? current.filter(s => s !== size) : [...current, size];
+      return { ...f, sizes: updated };
+    });
+  };
+
+  // Save Product (Create or Update)
+  const handleSaveProduct = async (e) => {
+    e.preventDefault();
+    if (!form.name.trim()) {
+      alert('Please enter a product name.');
+      return;
+    }
+    const cleanPrice = String(form.price || '').replace(/,/g, '').trim();
+    const priceNum = Number(cleanPrice);
+    if (isNaN(priceNum) || priceNum < 0) {
+      alert('Please enter a valid selling price.');
+      return;
     }
 
-    setAddModalOpen(false);
+    if (form.images.length === 0) {
+      alert('Please upload or provide at least one product image.');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      if (editingProduct) {
+        // Update existing product in persistent DB
+        await SrithiProductDB.update(editingProduct.id, {
+          name: form.name.trim(),
+          category: form.category,
+          price: priceNum,
+          originalPrice: form.originalPrice !== '' ? Number(String(form.originalPrice).replace(/,/g, '').trim()) : priceNum,
+          fabric: form.fabric.trim(),
+          color: form.color.trim(),
+          pattern: form.pattern.trim(),
+          occasion: form.occasion.trim(),
+          description: form.description.trim(),
+          images: form.images,
+          stock: Math.max(0, parseInt(form.stock, 10) || 0),
+          sizes: form.category === 'Sarees' ? [] : form.sizes,
+          featured: form.featured,
+          newArrival: form.newArrival,
+          bestSeller: form.bestSeller,
+          active: form.active
+        });
+        toast('Product updated successfully.');
+      } else {
+        // Create new product in persistent DB
+        await SrithiProductDB.create({
+          name: form.name.trim(),
+          category: form.category,
+          price: priceNum,
+          originalPrice: form.originalPrice !== '' ? Number(String(form.originalPrice).replace(/,/g, '').trim()) : priceNum,
+          fabric: form.fabric.trim(),
+          color: form.color.trim(),
+          pattern: form.pattern.trim(),
+          occasion: form.occasion.trim(),
+          description: form.description.trim(),
+          images: form.images,
+          stock: Math.max(0, parseInt(form.stock, 10) || 0),
+          sizes: form.category === 'Sarees' ? [] : form.sizes,
+          featured: form.featured,
+          newArrival: form.newArrival,
+          bestSeller: form.bestSeller,
+          active: form.active
+        });
+        toast('Product added successfully.');
+      }
+      setAddModalOpen(false);
+    } catch(err) {
+      alert('Unable to update product. Please try again: ' + err.message);
+      toast('Unable to update product. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const confirmDelete = () => {
+  // Confirm Delete / Deactivate
+  const confirmDelete = async () => {
     if (!deletingProduct) return;
-    const updated = products.filter(p => p.id !== deletingProduct.id);
-    setProducts(updated);
-    try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
-    setDeletingProduct(null);
-    toast('Product deleted from catalog');
+    try {
+      await SrithiProductDB.delete(deletingProduct.id, { soft: true });
+      toast('Product deleted successfully.');
+      setDeletingProduct(null);
+    } catch(err) {
+      alert('Failed to delete product: ' + err.message);
+      toast('Unable to update product. Please try again.');
+    }
   };
 
-  const filtered = products.filter(p => {
-    const matchCat = categoryFilter === 'All' || p.category === categoryFilter;
-    const matchSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        p.fabric.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        p.color.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchCat && matchSearch;
-  });
+  // Quick Status Toggle
+  const handleQuickStatusToggle = async (p) => {
+    try {
+      await SrithiProductDB.updateStatus(p.id, !p.active);
+      toast(p.name + ' is now ' + (!p.active ? 'Active' : 'Inactive'));
+    } catch(err) {
+      toast('Unable to update product. Please try again.');
+    }
+  };
+
+  // Quick Stock Adjustment
+  const handleQuickStock = async (p, delta) => {
+    const current = Number(p.stock) || 0;
+    const newStock = Math.max(0, current + delta);
+    try {
+      await SrithiProductDB.updateStock(p.id, newStock);
+      toast('Stock updated to ' + newStock);
+    } catch(err) {
+      toast('Unable to update stock.');
+    }
+  };
+
+  // Search & Filtering
+  const filtered = useMemo(() => {
+    let list = products;
+
+    // Search query
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      list = list.filter(p =>
+        (p.name && p.name.toLowerCase().includes(q)) ||
+        (p.fabric && p.fabric.toLowerCase().includes(q)) ||
+        (p.color && p.color.toLowerCase().includes(q)) ||
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        String(p.id) === q ||
+        ('#' + p.id) === q
+      );
+    }
+
+    // Category Filter
+    if (categoryFilter === 'Sarees') {
+      list = list.filter(p => p.category === 'Sarees');
+    } else if (categoryFilter === 'Salwar Sets') {
+      list = list.filter(p => p.category === 'Salwars' || p.category === 'Salwar Sets');
+    }
+
+    // Status Filter
+    if (statusFilter === 'Active') {
+      list = list.filter(p => p.active !== false);
+    } else if (statusFilter === 'Inactive') {
+      list = list.filter(p => p.active === false);
+    } else if (statusFilter === 'InStock') {
+      list = list.filter(p => (Number(p.stock) || 0) > 0);
+    } else if (statusFilter === 'OutOfStock') {
+      list = list.filter(p => (Number(p.stock) || 0) === 0);
+    }
+
+    // Badge Filter
+    if (badgeFilter === 'Featured') {
+      list = list.filter(p => p.featured);
+    } else if (badgeFilter === 'NewArrival') {
+      list = list.filter(p => p.newArrival || p.isNew);
+    } else if (badgeFilter === 'BestSeller') {
+      list = list.filter(p => p.bestSeller || p.isBestSeller);
+    }
+
+    // Sorting
+    const sorted = [...list];
+    if (sortBy === 'name-asc') sorted.sort((a,b) => (a.name||'').localeCompare(b.name||''));
+    else if (sortBy === 'name-desc') sorted.sort((a,b) => (b.name||'').localeCompare(a.name||''));
+    else if (sortBy === 'price-asc') sorted.sort((a,b) => (a.price||0) - (b.price||0));
+    else if (sortBy === 'price-desc') sorted.sort((a,b) => (b.price||0) - (a.price||0));
+    else if (sortBy === 'stock-asc') sorted.sort((a,b) => (Number(a.stock)||0) - (Number(b.stock)||0));
+    else if (sortBy === 'stock-desc') sorted.sort((a,b) => (Number(b.stock)||0) - (Number(a.stock)||0));
+    else sorted.sort((a,b) => (Number(b.id)||0) - (Number(a.id)||0)); // Newest first
+
+    return sorted;
+  }, [products, searchTerm, categoryFilter, statusFilter, badgeFilter, sortBy]);
 
   return (
     <div>
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24,flexWrap:'wrap',gap:16}}>
+      {/* Header with Title and Add Product Button */}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:16,marginBottom:24}}>
         <div>
           <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
-            Product Management
+            Product Catalog Management
           </h1>
           <p style={{fontSize:13,color:'#6B7280'}}>
-            Catalog control: add new silhouettes, update stock, modify details, and manage badges.
+            Single Source of Truth: All modifications made here immediately persist and reflect live across the storefront.
           </p>
         </div>
-
-        <button
-          onClick={openAddModal}
-          className="admin-btn-primary"
-          style={{width:'auto',display:'flex',alignItems:'center',gap:8,padding:'11px 20px'}}
-        >
-          <IcoPlus style={{width:16,height:16}}/>
-          <span>Add Product</span>
+        <button className="admin-btn-primary" onClick={openAddModal}>
+          <span style={{fontSize:18,lineHeight:1}}>+</span> Add New Product
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
+      {/* Search, Filter & Sort Controls */}
       <div className="admin-card" style={{padding:16,marginBottom:20}}>
-        <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}>
-          <div style={{flex:1,minWidth:240,position:'relative'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(180px, 1fr))',gap:12,alignItems:'center'}}>
+          {/* Search Input */}
+          <div style={{position:'relative',gridColumn:'span 2',minWidth:240}}>
             <input
               type="text"
               className="admin-input"
-              placeholder="Search products by name, fabric, or shade..."
+              placeholder="Search by name, ID (#4), fabric, color..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              style={{paddingLeft:38}}
+              style={{paddingLeft:36}}
             />
-            <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
+            <IcoSearch style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',width:16,height:16,color:'#9CA3AF'}}/>
+            {searchTerm && (
+              <button
+                onClick={()=>setSearchTerm('')}
+                style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#9CA3AF',cursor:'pointer',fontSize:14}}
+              >
+                ✕
+              </button>
+            )}
           </div>
 
-          <div style={{display:'flex',alignItems:'center',gap:8}}>
-            <span style={{fontSize:12,fontWeight:600,color:'#6B7280',textTransform:'uppercase'}}>Category:</span>
-            {['All', 'Sarees', 'Salwars'].map(c => (
-              <button
-                key={c}
-                onClick={() => setCategoryFilter(c)}
-                style={{
-                  padding:'7px 14px',
-                  borderRadius:6,
-                  border:'none',
-                  fontSize:12,
-                  fontWeight:500,
-                  cursor:'pointer',
-                  background: categoryFilter === c ? 'var(--plum)' : '#F3F4F6',
-                  color: categoryFilter === c ? '#FFFFFF' : '#4B5563',
-                  transition:'all 0.15s'
-                }}
-              >
-                {c}
-              </button>
-            ))}
+          {/* Category Filter */}
+          <div>
+            <select
+              className="admin-input"
+              value={categoryFilter}
+              onChange={e => setCategoryFilter(e.target.value)}
+            >
+              <option value="All">All Categories</option>
+              <option value="Sarees">Sarees</option>
+              <option value="Salwar Sets">Salwar Sets</option>
+            </select>
           </div>
+
+          {/* Status Filter */}
+          <div>
+            <select
+              className="admin-input"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
+              <option value="All">All Statuses</option>
+              <option value="Active">Active Only</option>
+              <option value="Inactive">Inactive / Hidden</option>
+              <option value="InStock">In Stock</option>
+              <option value="OutOfStock">Out of Stock</option>
+            </select>
+          </div>
+
+          {/* Badge Filter */}
+          <div>
+            <select
+              className="admin-input"
+              value={badgeFilter}
+              onChange={e => setBadgeFilter(e.target.value)}
+            >
+              <option value="All">All Badges</option>
+              <option value="Featured">Featured</option>
+              <option value="NewArrival">New Arrivals</option>
+              <option value="BestSeller">Best Sellers</option>
+            </select>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <select
+              className="admin-input"
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+            >
+              <option value="newest">Sort: Newest First</option>
+              <option value="name-asc">Sort: Name (A-Z)</option>
+              <option value="name-desc">Sort: Name (Z-A)</option>
+              <option value="price-asc">Sort: Price (Low → High)</option>
+              <option value="price-desc">Sort: Price (High → Low)</option>
+              <option value="stock-asc">Sort: Stock (Low → High)</option>
+              <option value="stock-desc">Sort: Stock (High → Low)</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Counter Info */}
+        <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid #F3F4F6',display:'flex',justifyContent:'space-between',fontSize:12,color:'#6B7280'}}>
+          <span>Showing <strong>{filtered.length}</strong> of <strong>{products.length}</strong> silhouettes</span>
+          {(searchTerm || categoryFilter !== 'All' || statusFilter !== 'All' || badgeFilter !== 'All' || sortBy !== 'newest') && (
+            <button
+              onClick={()=>{setSearchTerm('');setCategoryFilter('All');setStatusFilter('All');setBadgeFilter('All');setSortBy('newest');}}
+              style={{background:'none',border:'none',color:'var(--dusty-rose)',cursor:'pointer',textDecoration:'underline',fontSize:12}}
+            >
+              Reset Filters
+            </button>
+          )}
         </div>
       </div>
 
       {/* Products Table */}
-      <div className="admin-table-container">
+      <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Image</th>
-              <th>Product Details</th>
-              <th>Category</th>
-              <th>Price</th>
-              <th>Stock</th>
-              <th>Status Badges</th>
-              <th style={{textAlign:'right'}}>Actions</th>
+              <th>SILHOUETTE</th>
+              <th>FABRIC &amp; COLOR</th>
+              <th>PRICE</th>
+              <th>STOCK</th>
+              <th>STATUS</th>
+              <th style={{textAlign:'right'}}>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(p => (
-              <tr key={p.id}>
-                <td style={{width:60}}>
-                  <img
-                    src={p.images[0]}
-                    alt={p.name}
-                    style={{width:48,height:60,objectFit:'cover',borderRadius:4,border:'1px solid #E5E7EB'}}
-                    onError={handleImgError}
-                  />
-                </td>
-                <td style={{maxWidth:280}}>
-                  <div style={{fontWeight:600,color:'var(--plum)',marginBottom:2}}>{p.name}</div>
-                  <div style={{fontSize:11,color:'#6B7280'}}>
-                    {p.fabric} · {p.color}
-                  </div>
-                </td>
-                <td>
-                  <span className={'admin-badge ' + (p.category === 'Sarees' ? 'admin-badge-purple' : 'admin-badge-info')}>
-                    {p.category}
-                  </span>
-                </td>
-                <td>
-                  <div style={{fontWeight:600,color:'var(--plum)'}}>{fmt(p.price)}</div>
-                  {p.originalPrice > p.price && (
-                    <div style={{fontSize:11,color:'#9CA3AF',textDecoration:'line-through'}}>
-                      {fmt(p.originalPrice)} ({p.discount}% OFF)
-                    </div>
-                  )}
-                </td>
-                <td>
-                  <span style={{
-                    fontWeight:600,
-                    color: p.stock > 10 ? '#059669' : (p.stock > 0 ? '#D97706' : '#DC2626')
-                  }}>
-                    {p.stock} units
-                  </span>
-                </td>
-                <td>
-                  <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
-                    {p.isNew && <span className="admin-badge admin-badge-success">NEW</span>}
-                    {p.isBestSeller && <span className="admin-badge admin-badge-warning">BEST SELLER</span>}
-                  </div>
-                </td>
-                <td style={{textAlign:'right'}}>
-                  <div style={{display:'inline-flex',gap:8}}>
-                    <button
-                      onClick={() => openEditModal(p)}
-                      className="admin-btn-secondary"
-                      style={{padding:'6px 10px',display:'flex',alignItems:'center',gap:4}}
-                      title="Edit Product"
-                    >
-                      <IcoEdit style={{width:14,height:14}}/> Edit
-                    </button>
-                    <button
-                      onClick={() => setDeletingProduct(p)}
-                      className="admin-btn-secondary"
-                      style={{padding:'6px 10px',color:'#DC2626',borderColor:'#FECACA',display:'flex',alignItems:'center',gap:4}}
-                      title="Delete Product"
-                    >
-                      <IcoTrash style={{width:14,height:14}}/>
-                    </button>
-                  </div>
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{textAlign:'center',padding:40,color:'#9CA3AF'}}>
+                  No products match your search or filter criteria.
                 </td>
               </tr>
-            ))}
+            ) : (
+              filtered.map(p => {
+                const isOutOfStock = (Number(p.stock) || 0) === 0;
+                const primaryImg = (Array.isArray(p.images) && p.images[0]) || 'images/sarees/crimson-kanjeevaram.jpg';
+                return (
+                  <tr key={p.id} style={{opacity: p.active === false ? 0.65 : 1}}>
+                    {/* Silhouette Column */}
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:12}}>
+                        <div style={{position:'relative',width:44,height:55,borderRadius:3,overflow:'hidden',background:'#F3F4F6',flexShrink:0}}>
+                          <img src={primaryImg} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={handleImgError}/>
+                        </div>
+                        <div>
+                          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
+                            <span style={{fontWeight:600,color:'var(--plum)'}}>{p.name}</span>
+                            <span style={{fontSize:10,color:'#9CA3AF'}}>#{p.id}</span>
+                          </div>
+                          <div style={{fontSize:11,color:'#6B7280',marginTop:2}}>
+                            {p.category}
+                            {p.featured && <span style={{marginLeft:6,background:'#FEF3C7',color:'#92400E',padding:'1px 5px',borderRadius:2,fontSize:9,fontWeight:700}}>FEATURED</span>}
+                            {(p.newArrival || p.isNew) && <span style={{marginLeft:4,background:'#E0E7FF',color:'#3730A3',padding:'1px 5px',borderRadius:2,fontSize:9,fontWeight:700}}>NEW</span>}
+                            {(p.bestSeller || p.isBestSeller) && <span style={{marginLeft:4,background:'#FEE2E2',color:'#991B1B',padding:'1px 5px',borderRadius:2,fontSize:9,fontWeight:700}}>BESTSELLER</span>}
+                          </div>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Fabric & Color */}
+                    <td>
+                      <div style={{fontSize:12.5}}>{p.fabric || '—'}</div>
+                      <div style={{fontSize:11,color:'#9CA3AF'}}>{p.color || '—'}</div>
+                    </td>
+
+                    {/* Price */}
+                    <td>
+                      <div style={{fontWeight:600,color:'var(--plum)',fontSize:13.5}}>
+                        {fmt(p.price)}
+                      </div>
+                      {p.originalPrice > p.price && (
+                        <div style={{fontSize:11,color:'#9CA3AF',textDecoration:'line-through'}}>
+                          {fmt(p.originalPrice)}
+                          <span style={{marginLeft:4,color:'#059669',textDecoration:'none',fontWeight:600}}>
+                            {p.discount}% Off
+                          </span>
+                        </div>
+                      )}
+                    </td>
+
+                    {/* Stock Management with Quick Buttons */}
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:6}}>
+                        <button
+                          onClick={()=>handleQuickStock(p, -1)}
+                          style={{width:22,height:22,background:'#F3F4F6',border:'1px solid #E5E7EB',borderRadius:2,cursor:'pointer',fontSize:12,lineHeight:1}}
+                          title="Decrease stock by 1"
+                        >
+                          −
+                        </button>
+                        <span style={{minWidth:28,textAlign:'center',fontWeight:600,color: isOutOfStock ? '#DC2626' : 'inherit',fontSize:13}}>
+                          {p.stock !== undefined ? p.stock : 10}
+                        </span>
+                        <button
+                          onClick={()=>handleQuickStock(p, 1)}
+                          style={{width:22,height:22,background:'#F3F4F6',border:'1px solid #E5E7EB',borderRadius:2,cursor:'pointer',fontSize:12,lineHeight:1}}
+                          title="Increase stock by 1"
+                        >
+                          +
+                        </button>
+                      </div>
+                      {isOutOfStock ? (
+                        <div style={{fontSize:10,color:'#DC2626',fontWeight:700,marginTop:2}}>OUT OF STOCK</div>
+                      ) : (
+                        <div style={{fontSize:10,color:'#059669',marginTop:2}}>In Stock</div>
+                      )}
+                    </td>
+
+                    {/* Status Pill Toggle */}
+                    <td>
+                      <button
+                        onClick={()=>handleQuickStatusToggle(p)}
+                        style={{
+                          padding:'3px 8px',
+                          fontSize:11,
+                          fontWeight:600,
+                          borderRadius:12,
+                          border:'none',
+                          cursor:'pointer',
+                          background: p.active !== false ? '#DEF7EC' : '#F3F4F6',
+                          color: p.active !== false ? '#03543F' : '#6B7280'
+                        }}
+                        title="Click to toggle Active / Inactive"
+                      >
+                        {p.active !== false ? '● Active' : '○ Inactive'}
+                      </button>
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{textAlign:'right'}}>
+                      <div style={{display:'inline-flex',gap:6}}>
+                        <button
+                          className="admin-btn-secondary"
+                          style={{padding:'6px 10px',fontSize:11}}
+                          onClick={()=>openEditModal(p)}
+                          title="Edit product details, pricing, images, stock"
+                        >
+                          <IcoPencil style={{width:13,height:13,marginRight:4}}/> Edit
+                        </button>
+                        <button
+                          className="admin-btn-danger"
+                          style={{padding:'6px 8px',fontSize:11}}
+                          onClick={()=>setDeletingProduct(p)}
+                          title="Deactivate / Delete product"
+                        >
+                          <IcoTrash style={{width:13,height:13}}/>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
 
       {/* ADD / EDIT PRODUCT MODAL */}
       {addModalOpen && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-content">
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,borderBottom:'1px solid #F3F4F6',paddingBottom:12}}>
-              <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:20,color:'var(--plum)',margin:0}}>
-                {editingProduct ? 'Edit Product' : 'Add New Product'}
-              </h2>
-              <button onClick={() => setAddModalOpen(false)} style={{background:'none',border:'none',cursor:'pointer',color:'#6B7280'}}>
-                <IcoX style={{width:20,height:20}}/>
-              </button>
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal" style={{maxWidth:760,maxHeight:'90vh',display:'flex',flexDirection:'column'}}>
+            <div className="admin-modal-header" style={{flexShrink:0}}>
+              <div>
+                <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:20,fontWeight:600,color:'var(--plum)'}}>
+                  {editingProduct ? 'Edit Silhouette (ID: #' + editingProduct.id + ')' : 'Add New Silhouette to Atelier'}
+                </h2>
+                <p style={{fontSize:12,color:'#6B7280',marginTop:2}}>
+                  {editingProduct ? 'Update pricing, images, fabric details and inventory.' : 'Create a new piece. It will immediately publish live upon saving.'}
+                </p>
+              </div>
+              <button className="admin-modal-close" onClick={()=>setAddModalOpen(false)}>✕</button>
             </div>
 
-            <form onSubmit={handleSaveProduct}>
-              <div className="admin-field-group">
-                <label className="admin-field-label">Product Name *</label>
-                <input
-                  required
-                  className="admin-input"
-                  value={form.name}
-                  onChange={e => setForm({...form, name: e.target.value})}
-                  placeholder="e.g. Royal Indigo Kanjeevaram Silk Saree"
-                />
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Category *</label>
-                  <select
-                    className="admin-input"
-                    value={form.category}
-                    onChange={e => setForm({...form, category: e.target.value})}
-                  >
-                    <option value="Sarees">Sarees</option>
-                    <option value="Salwars">Salwars</option>
-                  </select>
+            <form onSubmit={handleSaveProduct} style={{overflowY:'auto',padding:'20px 24px',flex:1}}>
+              {/* Basic Information */}
+              <div style={{marginBottom:18}}>
+                <div style={{fontSize:11,fontFamily:'Cinzel,serif',letterSpacing:'.15em',textTransform:'uppercase',color:'var(--dusty-rose)',fontWeight:700,marginBottom:10}}>
+                  1. BASIC INFORMATION
                 </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Stock Quantity *</label>
-                  <input
-                    type="number"
-                    min="0"
-                    required
-                    className="admin-input"
-                    value={form.stock}
-                    onChange={e => setForm({...form, stock: e.target.value})}
-                  />
-                </div>
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Selling Price (₹) *</label>
-                  <input
-                    type="number"
-                    required
-                    className="admin-input"
-                    value={form.price}
-                    onChange={e => setForm({...form, price: e.target.value})}
-                    placeholder="e.g. 2999"
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Original Price (₹)</label>
-                  <input
-                    type="number"
-                    className="admin-input"
-                    value={form.originalPrice}
-                    onChange={e => setForm({...form, originalPrice: e.target.value})}
-                    placeholder="e.g. 3999"
-                  />
-                </div>
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Fabric</label>
-                  <input
-                    className="admin-input"
-                    value={form.fabric}
-                    onChange={e => setForm({...form, fabric: e.target.value})}
-                    placeholder="e.g. Pure Silk / Chanderi"
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Color / Shade</label>
-                  <input
-                    className="admin-input"
-                    value={form.color}
-                    onChange={e => setForm({...form, color: e.target.value})}
-                    placeholder="e.g. Mustard Yellow"
-                  />
-                </div>
-              </div>
-
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Pattern</label>
-                  <input
-                    className="admin-input"
-                    value={form.pattern}
-                    onChange={e => setForm({...form, pattern: e.target.value})}
-                    placeholder="e.g. Handcrafted Zari Border"
-                  />
-                </div>
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Occasion</label>
-                  <input
-                    className="admin-input"
-                    value={form.occasion}
-                    onChange={e => setForm({...form, occasion: e.target.value})}
-                    placeholder="e.g. Wedding / Festive"
-                  />
-                </div>
-              </div>
-
-              {/* Sizes Selector (Only for Salwars, not Sarees) */}
-              {form.category === 'Salwars' && (
-                <div className="admin-field-group">
-                  <label className="admin-field-label">Available Sizes (Salwars)</label>
-                  <div style={{display:'flex',gap:14}}>
-                    {['S','M','L','XL','XXL'].map(sz => {
-                      const checked = form.sizes.includes(sz);
-                      return (
-                        <label key={sz} style={{display:'flex',alignItems:'center',gap:6,fontSize:13,cursor:'pointer'}}>
-                          <input
-                            type="checkbox"
-                            checked={checked}
-                            onChange={() => {
-                              const newSizes = checked
-                                ? form.sizes.filter(s => s !== sz)
-                                : [...form.sizes, sz];
-                              setForm({...form, sizes: newSizes});
-                            }}
-                          />
-                          <span>{sz}</span>
-                        </label>
-                      );
-                    })}
+                <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:14}}>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Product Name *</label>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="e.g. Pure Tissue Kanchipuram Silk Saree"
+                      value={form.name}
+                      onChange={e=>setForm({...form, name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Category *</label>
+                    <select
+                      className="admin-input"
+                      value={form.category}
+                      onChange={e=>setForm({...form, category: e.target.value})}
+                    >
+                      <option value="Sarees">Sarees</option>
+                      <option value="Salwar Sets">Salwar Sets</option>
+                    </select>
                   </div>
                 </div>
-              )}
 
-              <div className="admin-field-group">
-                <label className="admin-field-label">Product Image Path / URL *</label>
-                <input
-                  required
-                  className="admin-input"
-                  value={form.images}
-                  onChange={e => setForm({...form, images: e.target.value})}
-                  placeholder="e.g. images/sarees/crimson-kanjeevaram.jpg"
-                />
-              </div>
-
-              <div className="admin-field-group">
-                <label className="admin-field-label">Description</label>
-                <textarea
-                  rows="3"
-                  className="admin-input"
-                  value={form.description}
-                  onChange={e => setForm({...form, description: e.target.value})}
-                  placeholder="Describe the silhouette, drape, craft details and packaging..."
-                />
-              </div>
-
-              {/* Badges Checkboxes */}
-              <div style={{display:'flex',gap:24,marginBottom:24}}>
-                <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
-                  <input
-                    type="checkbox"
-                    checked={form.isNew}
-                    onChange={e => setForm({...form, isNew: e.target.checked})}
+                <div className="admin-field-group">
+                  <label className="admin-field-label">Product Description</label>
+                  <textarea
+                    className="admin-input"
+                    rows="3"
+                    placeholder="Describe the weaving, craftsmanship, borders, and styling narrative..."
+                    value={form.description}
+                    onChange={e=>setForm({...form, description: e.target.value})}
                   />
-                  <span>Mark as New Silhouette</span>
-                </label>
-                <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
-                  <input
-                    type="checkbox"
-                    checked={form.isBestSeller}
-                    onChange={e => setForm({...form, isBestSeller: e.target.checked})}
-                  />
-                  <span>Mark as Best Seller</span>
-                </label>
+                </div>
               </div>
 
-              <div style={{display:'flex',justifyContent:'flex-end',gap:12}}>
+              {/* Pricing & Discounts */}
+              <div style={{marginBottom:18,paddingTop:14,borderTop:'1px solid #F3F4F6'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+                  <div style={{fontSize:11,fontFamily:'Cinzel,serif',letterSpacing:'.15em',textTransform:'uppercase',color:'var(--dusty-rose)',fontWeight:700}}>
+                    2. PRICING &amp; DISCOUNTS
+                  </div>
+                  {calculatedDiscount > 0 && (
+                    <span style={{background:'#DEF7EC',color:'#03543F',fontSize:11,fontWeight:700,padding:'2px 8px',borderRadius:3}}>
+                      Calculated Discount: {calculatedDiscount}% OFF
+                    </span>
+                  )}
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:14}}>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Selling Price (₹) *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      className="admin-input"
+                      placeholder="e.g. 12000"
+                      value={form.price}
+                      onChange={e=>setForm({...form, price: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Original Price (₹)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      className="admin-input"
+                      placeholder="e.g. 12000 (same if no offer)"
+                      value={form.originalPrice}
+                      onChange={e=>setForm({...form, originalPrice: e.target.value})}
+                    />
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Active Stock *</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className="admin-input"
+                      placeholder="e.g. 10 (0 = Out of Stock)"
+                      value={form.stock}
+                      onChange={e=>setForm({...form, stock: e.target.value})}
+                      required
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Multi-Image Gallery & Uploader */}
+              <div style={{marginBottom:18,paddingTop:14,borderTop:'1px solid #F3F4F6'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
+                  <div style={{fontSize:11,fontFamily:'Cinzel,serif',letterSpacing:'.15em',textTransform:'uppercase',color:'var(--dusty-rose)',fontWeight:700}}>
+                    3. PRODUCT IMAGES ({form.images.length})
+                  </div>
+                  <label style={{display:'inline-flex',alignItems:'center',gap:6,background:'var(--plum)',color:'#fff',padding:'6px 12px',borderRadius:3,fontSize:11,fontFamily:'Cinzel,serif',cursor:'pointer'}}>
+                    <span>📷 {uploadingImg ? 'Optimizing...' : 'Upload Photos'}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={handleFileUpload}
+                      disabled={uploadingImg}
+                      style={{display:'none'}}
+                    />
+                  </label>
+                </div>
+
+                {/* Gallery Grid */}
+                <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(130px, 1fr))',gap:10,marginBottom:12}}>
+                  {form.images.map((img, i)=>(
+                    <div
+                      key={i}
+                      style={{
+                        position:'relative',
+                        border: i === 0 ? '2px solid var(--gilded-gold)' : '1px solid #E5E7EB',
+                        borderRadius:4,
+                        padding:4,
+                        background:'#FAF7F2'
+                      }}
+                    >
+                      <div style={{width:'100%',height:120,borderRadius:2,overflow:'hidden',background:'#fff'}}>
+                        <img src={img} alt={'Preview ' + (i+1)} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={handleImgError}/>
+                      </div>
+                      {i === 0 && (
+                        <div style={{position:'absolute',top:8,left:8,background:'var(--plum)',color:'var(--gold-light)',fontSize:8.5,fontWeight:700,fontFamily:'Cinzel,serif',padding:'2px 5px',borderRadius:2}}>
+                          PRIMARY
+                        </div>
+                      )}
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginTop:6,gap:4}}>
+                        {i !== 0 ? (
+                          <button
+                            type="button"
+                            onClick={()=>handleSetPrimaryImage(i)}
+                            style={{fontSize:10,background:'none',border:'1px solid #D1D5DB',padding:'2px 5px',borderRadius:2,cursor:'pointer',color:'#4B5563'}}
+                            title="Make this the primary cover photo"
+                          >
+                            ★ Primary
+                          </button>
+                        ) : (
+                          <span style={{fontSize:10,color:'#059669',fontWeight:600}}>Cover Photo</span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={()=>handleRemoveImage(i)}
+                          style={{fontSize:11,background:'none',border:'none',color:'#DC2626',cursor:'pointer',padding:2}}
+                          title="Remove image"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Direct Image Path / URL Input */}
+                <div style={{display:'flex',gap:8}}>
+                  <input
+                    type="text"
+                    className="admin-input"
+                    placeholder="Or enter image URL / path (e.g. images/sarees/my-piece.webp)"
+                    value={form.urlInput}
+                    onChange={e=>setForm({...form, urlInput: e.target.value})}
+                  />
+                  <button
+                    type="button"
+                    className="admin-btn-secondary"
+                    onClick={handleAddUrl}
+                    style={{whiteSpace:'nowrap',padding:'0 14px'}}
+                  >
+                    Add URL
+                  </button>
+                </div>
+              </div>
+
+              {/* Sizes Selection (Salwar Sets only) */}
+              <div style={{marginBottom:18,paddingTop:14,borderTop:'1px solid #F3F4F6'}}>
+                <div style={{fontSize:11,fontFamily:'Cinzel,serif',letterSpacing:'.15em',textTransform:'uppercase',color:'var(--dusty-rose)',fontWeight:700,marginBottom:10}}>
+                  4. SPECIFICATIONS &amp; SIZES
+                </div>
+
+                {form.category === 'Sarees' ? (
+                  <div style={{fontSize:12.5,color:'#6B7280',background:'#F9FAFB',padding:'10px 14px',borderRadius:3,marginBottom:12}}>
+                    ℹ️ Sarees are standard 5.5-meter drapes with matching blouse pieces. Sizes are not applicable.
+                  </div>
+                ) : (
+                  <div style={{marginBottom:14}}>
+                    <label className="admin-field-label" style={{marginBottom:6}}>Available Sizes (Click to toggle)</label>
+                    <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                      {['S', 'M', 'L', 'XL', 'XXL', '3XL'].map(sz => {
+                        const isSel = (form.sizes || []).includes(sz);
+                        return (
+                          <button
+                            type="button"
+                            key={sz}
+                            onClick={()=>toggleSize(sz)}
+                            style={{
+                              padding:'6px 14px',
+                              borderRadius:3,
+                              border:'1px solid ' + (isSel ? 'var(--plum)' : '#D1D5DB'),
+                              background: isSel ? 'var(--plum)' : '#fff',
+                              color: isSel ? '#fff' : '#374151',
+                              fontWeight:600,
+                              cursor:'pointer',
+                              fontSize:12
+                            }}
+                          >
+                            {sz} {isSel ? '✓' : ''}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Fabric</label>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="e.g. Pure Tissue Silk, Silk Cotton, Jute Cotton"
+                      value={form.fabric}
+                      onChange={e=>setForm({...form, fabric: e.target.value})}
+                    />
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Color / Shade</label>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="e.g. Coral Red, Golden Mustard, Peacock Teal"
+                      value={form.color}
+                      onChange={e=>setForm({...form, color: e.target.value})}
+                    />
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Pattern / Weave</label>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="e.g. Traditional Zari Weave, Floral Jaal"
+                      value={form.pattern}
+                      onChange={e=>setForm({...form, pattern: e.target.value})}
+                    />
+                  </div>
+                  <div className="admin-field-group">
+                    <label className="admin-field-label">Occasion</label>
+                    <input
+                      type="text"
+                      className="admin-input"
+                      placeholder="e.g. Bridal / Wedding / Festive Celebrations"
+                      value={form.occasion}
+                      onChange={e=>setForm({...form, occasion: e.target.value})}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Status & Badges */}
+              <div style={{marginBottom:18,paddingTop:14,borderTop:'1px solid #F3F4F6'}}>
+                <div style={{fontSize:11,fontFamily:'Cinzel,serif',letterSpacing:'.15em',textTransform:'uppercase',color:'var(--dusty-rose)',fontWeight:700,marginBottom:10}}>
+                  5. STOREFRONT VISIBILITY &amp; BADGES
+                </div>
+                <div style={{display:'flex',gap:24,flexWrap:'wrap',alignItems:'center'}}>
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={form.active}
+                      onChange={e=>setForm({...form, active: e.target.checked})}
+                    />
+                    <span><strong>Active</strong> (Visible on customer storefront)</span>
+                  </label>
+
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={form.featured}
+                      onChange={e=>setForm({...form, featured: e.target.checked})}
+                    />
+                    <span><strong>Featured</strong> (Piece of the Week / Hero)</span>
+                  </label>
+
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={form.newArrival}
+                      onChange={e=>setForm({...form, newArrival: e.target.checked})}
+                    />
+                    <span><strong>New Arrival</strong></span>
+                  </label>
+
+                  <label style={{display:'flex',alignItems:'center',gap:8,fontSize:13,cursor:'pointer'}}>
+                    <input
+                      type="checkbox"
+                      checked={form.bestSeller}
+                      onChange={e=>setForm({...form, bestSeller: e.target.checked})}
+                    />
+                    <span><strong>Best Seller</strong></span>
+                  </label>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{display:'flex',justifyContent:'flex-end',gap:12,marginTop:20,paddingTop:16,borderTop:'1px solid #E5E7EB'}}>
                 <button
                   type="button"
-                  onClick={() => setAddModalOpen(false)}
                   className="admin-btn-secondary"
+                  onClick={()=>setAddModalOpen(false)}
+                  disabled={isSaving}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   className="admin-btn-primary"
-                  style={{width:'auto',padding:'10px 24px'}}
+                  disabled={isSaving}
+                  style={{minWidth:140}}
                 >
-                  {editingProduct ? 'Save Changes' : 'Add to Catalog'}
+                  {isSaving ? 'Saving to Database...' : (editingProduct ? 'Save Changes' : 'Create Product')}
                 </button>
               </div>
             </form>
@@ -5215,303 +6021,41 @@ function AdminProductsTab({products, setProducts, toast}){
         </div>
       )}
 
-      {/* DELETE CONFIRMATION MODAL */}
+      {/* DELETE / DEACTIVATE CONFIRMATION MODAL */}
       {deletingProduct && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-content" style={{maxWidth:420,textAlign:'center'}}>
-            <div style={{width:54,height:54,borderRadius:'50%',background:'#FEE2E2',color:'#DC2626',display:'flex',alignItems:'center',justifyContent:'center',margin:'0 auto 16px'}}>
-              <IcoTrash style={{width:26,height:26}}/>
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal" style={{maxWidth:480}}>
+            <div className="admin-modal-header">
+              <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:600,color:'#DC2626'}}>
+                Confirm Deactivation
+              </h2>
+              <button className="admin-modal-close" onClick={()=>setDeletingProduct(null)}>✕</button>
             </div>
-            <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:22,color:'var(--plum)',marginBottom:8}}>
-              Delete this product?
-            </h2>
-            <p style={{fontSize:13,color:'#6B7280',lineHeight:1.5,marginBottom:24}}>
-              This action cannot be undone. Are you sure you want to continue removing <strong>"{deletingProduct.name}"</strong> from the catalog?
-            </p>
-            <div style={{display:'flex',gap:12,justifyContent:'center'}}>
-              <button
-                onClick={() => setDeletingProduct(null)}
-                className="admin-btn-secondary"
-                style={{padding:'9px 20px'}}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                style={{
-                  padding:'9px 20px',
-                  background:'#DC2626',
-                  color:'#FFFFFF',
-                  border:'none',
-                  borderRadius:6,
-                  fontSize:13,
-                  fontWeight:600,
-                  cursor:'pointer'
-                }}
-              >
-                Delete Product
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// 3. ORDERS MANAGEMENT TAB
-function AdminOrdersTab({orders, setOrders, toast}){
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('All');
-  const [selectedOrder, setSelectedOrder] = useState(null);
-
-  const statuses = ['All', 'Pending', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
-
-  const filteredOrders = orders.filter(o => {
-    const matchStatus = statusFilter === 'All' || o.status === statusFilter;
-    const matchSearch = o.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        o.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        (o.mobile && o.mobile.includes(searchTerm));
-    return matchStatus && matchSearch;
-  });
-
-  const handleUpdateStatus = (orderId, newStatus) => {
-    const updated = orders.map(o => o.id === orderId ? {...o, status: newStatus} : o);
-    setOrders(updated);
-    try { localStorage.setItem('SRITHI_ORDERS_V3', JSON.stringify(updated)); } catch(e){}
-    if (selectedOrder && selectedOrder.id === orderId) {
-      setSelectedOrder({...selectedOrder, status: newStatus});
-    }
-    toast('Order ' + orderId + ' updated to ' + newStatus);
-  };
-
-  return (
-    <div>
-      <div style={{marginBottom:24}}>
-        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
-          Orders Management
-        </h1>
-        <p style={{fontSize:13,color:'#6B7280'}}>
-          Live customer dispatch orders, delivery addresses, size requests, and status workflows.
-        </p>
-      </div>
-
-      {/* Filter and Search Bar */}
-      <div className="admin-card" style={{padding:16,marginBottom:20}}>
-        <div style={{display:'flex',gap:16,alignItems:'center',flexWrap:'wrap'}}>
-          <div style={{flex:1,minWidth:240,position:'relative'}}>
-            <input
-              type="text"
-              className="admin-input"
-              placeholder="Search by Order ID (#SRT-...), customer name, or mobile..."
-              value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
-              style={{paddingLeft:38}}
-            />
-            <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
-          </div>
-
-          <div style={{display:'flex',alignItems:'center',gap:6,flexWrap:'wrap'}}>
-            {statuses.map(st => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                style={{
-                  padding:'6px 12px',
-                  borderRadius:6,
-                  border:'none',
-                  fontSize:12,
-                  fontWeight:500,
-                  cursor:'pointer',
-                  background: statusFilter === st ? 'var(--plum)' : '#F3F4F6',
-                  color: statusFilter === st ? '#FFFFFF' : '#4B5563',
-                  transition:'all 0.15s'
-                }}
-              >
-                {st}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Orders Table */}
-      <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Order ID</th>
-              <th>Date</th>
-              <th>Customer</th>
-              <th>Items</th>
-              <th>Total Amount</th>
-              <th>Payment</th>
-              <th>Status</th>
-              <th style={{textAlign:'right'}}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredOrders.map(o => {
-              let badgeClass = 'admin-badge-info';
-              if (o.status === 'Delivered') badgeClass = 'admin-badge-success';
-              else if (o.status === 'Shipped') badgeClass = 'admin-badge-purple';
-              else if (o.status === 'Confirmed') badgeClass = 'admin-badge-info';
-              else if (o.status === 'Processing') badgeClass = 'admin-badge-warning';
-              else if (o.status === 'Cancelled') badgeClass = 'admin-badge-danger';
-
-              return (
-                <tr key={o.id}>
-                  <td style={{fontFamily:'monospace',fontWeight:600,color:'var(--plum)'}}>{o.id}</td>
-                  <td style={{fontSize:12,color:'#6B7280'}}>{o.date}</td>
-                  <td>
-                    <div style={{fontWeight:600}}>{o.customer}</div>
-                    <div style={{fontSize:11,color:'#6B7280'}}>{o.mobile}</div>
-                  </td>
-                  <td>
-                    <span style={{fontWeight:600}}>
-                      {o.items ? o.items.reduce((s,i) => s + (i.qty || 1), 0) : 1} item(s)
-                    </span>
-                  </td>
-                  <td style={{fontWeight:600,color:'var(--plum)'}}>
-                    ₹{(o.amount || 0).toLocaleString('en-IN')}
-                  </td>
-                  <td style={{fontSize:12}}>{o.paymentMethod || 'UPI'}</td>
-                  <td>
-                    <span className={'admin-badge ' + badgeClass}>
-                      {o.status}
-                    </span>
-                  </td>
-                  <td style={{textAlign:'right'}}>
-                    <button
-                      onClick={() => setSelectedOrder(o)}
-                      className="admin-btn-secondary"
-                      style={{padding:'6px 12px'}}
-                    >
-                      View Details
-                    </button>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* ORDER DETAILS MODAL */}
-      {selectedOrder && (
-        <div className="admin-modal-overlay">
-          <div className="admin-modal-content" style={{maxWidth:600}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20,borderBottom:'1px solid #F3F4F6',paddingBottom:12}}>
-              <div>
-                <span className="admin-badge admin-badge-purple" style={{marginBottom:4}}>ORDER DETAILS</span>
-                <h2 style={{fontFamily:'Cinzel,serif',fontSize:18,color:'var(--plum)',margin:0}}>
-                  {selectedOrder.id}
-                </h2>
-              </div>
-              <button onClick={() => setSelectedOrder(null)} style={{background:'none',border:'none',cursor:'pointer',color:'#6B7280'}}>
-                <IcoX style={{width:20,height:20}}/>
-              </button>
-            </div>
-
-            {/* Order Information */}
-            <div style={{background:'#F9FAFB',padding:16,borderRadius:8,marginBottom:16}}>
-              <h3 style={{fontSize:11,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4B5563',marginBottom:8}}>
-                Client Information
-              </h3>
-              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,fontSize:13}}>
-                <div><strong>Customer:</strong> {selectedOrder.customer}</div>
-                <div><strong>Mobile:</strong> {selectedOrder.mobile}</div>
-                <div><strong>Email:</strong> {selectedOrder.email}</div>
-                <div><strong>Date Placed:</strong> {selectedOrder.date}</div>
-              </div>
-            </div>
-
-            {/* Delivery Address */}
-            <div style={{background:'#F9FAFB',padding:16,borderRadius:8,marginBottom:16}}>
-              <h3 style={{fontSize:11,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4B5563',marginBottom:8}}>
-                Delivery Address
-              </h3>
-              <p style={{fontSize:13,color:'#374151',margin:0}}>
-                {selectedOrder.address}<br/>
-                {selectedOrder.city}, {selectedOrder.state} - {selectedOrder.pincode}
+            <div style={{padding:'20px 24px'}}>
+              <p style={{fontSize:13.5,lineHeight:1.6,color:'#374151',marginBottom:16}}>
+                Are you sure you want to delete / deactivate <strong>"{deletingProduct.name}"</strong> (ID: #{deletingProduct.id})?
               </p>
-            </div>
-
-            {/* Products Breakdown */}
-            <div style={{marginBottom:16}}>
-              <h3 style={{fontSize:11,fontFamily:'Cinzel,serif',fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'#4B5563',marginBottom:10}}>
-                Ordered Silhouettes
-              </h3>
-              <div style={{display:'flex',flexDirection:'column',gap:10}}>
-                {(selectedOrder.items || []).map((it, idx) => (
-                  <div key={idx} style={{display:'flex',alignItems:'center',justifyContent:'space-between',borderBottom:'1px solid #F3F4F6',paddingBottom:8}}>
-                    <div style={{display:'flex',alignItems:'center',gap:12}}>
-                      {it.image && (
-                        <img src={it.image} alt={it.name} style={{width:38,height:48,objectFit:'cover',borderRadius:4}} onError={handleImgError}/>
-                      )}
-                      <div>
-                        <div style={{fontSize:13,fontWeight:600,color:'var(--plum)'}}>{it.name}</div>
-                        <div style={{fontSize:11,color:'#6B7280'}}>
-                          {it.category} {it.size ? '· Size: ' + it.size : ''} · Qty: {it.qty || 1}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{fontSize:13,fontWeight:600,color:'var(--plum)'}}>
-                      ₹{((it.price || 0) * (it.qty || 1)).toLocaleString('en-IN')}
-                    </div>
-                  </div>
-                ))}
+              <div style={{fontSize:12,color:'#6B7280',background:'#FEF2F2',padding:'10px 14px',borderRadius:4,borderLeft:'3px solid #DC2626',marginBottom:20}}>
+                ● The piece will be immediately removed from the customer storefront, search results, and lookbooks.<br/>
+                ● Existing customer order history will safely retain their historical reference.
               </div>
-            </div>
-
-            {/* Order Status & Financial Summary */}
-            <div style={{background:'#FAF7F2',border:'1px solid var(--border-gold)',padding:16,borderRadius:8,marginBottom:20}}>
-              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}>
-                <span style={{fontSize:12,fontWeight:600,color:'#4B5563'}}>Order Status:</span>
-                <select
-                  value={selectedOrder.status}
-                  onChange={e => handleUpdateStatus(selectedOrder.id, e.target.value)}
-                  style={{
-                    padding:'6px 12px',
-                    borderRadius:6,
-                    border:'1px solid var(--border-gold)',
-                    background:'#FFFFFF',
-                    fontFamily:'inherit',
-                    fontSize:13,
-                    fontWeight:600,
-                    color:'var(--plum)'
-                  }}
+              <div style={{display:'flex',justifyContent:'flex-end',gap:12}}>
+                <button
+                  type="button"
+                  className="admin-btn-secondary"
+                  onClick={()=>setDeletingProduct(null)}
                 >
-                  {statuses.filter(s => s !== 'All').map(s => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="admin-btn-danger"
+                  onClick={confirmDelete}
+                  style={{padding:'8px 18px'}}
+                >
+                  Confirm Delete
+                </button>
               </div>
-
-              <div style={{fontSize:12,color:'#6B7280',display:'flex',justifyContent:'space-between',marginBottom:4}}>
-                <span>Subtotal:</span>
-                <span>₹{(selectedOrder.subtotal || selectedOrder.amount).toLocaleString('en-IN')}</span>
-              </div>
-              {selectedOrder.discount > 0 && (
-                <div style={{fontSize:12,color:'#059669',display:'flex',justifyContent:'space-between',marginBottom:4}}>
-                  <span>Atelier Discount:</span>
-                  <span>-₹{selectedOrder.discount.toLocaleString('en-IN')}</span>
-                </div>
-              )}
-              <div style={{fontSize:12,color:'#6B7280',display:'flex',justifyContent:'space-between',marginBottom:6}}>
-                <span>Delivery:</span>
-                <span>{selectedOrder.delivery === 0 ? 'FREE' : '₹' + selectedOrder.delivery}</span>
-              </div>
-              <div style={{borderTop:'1px solid rgba(197,168,128,0.4)',paddingTop:6,display:'flex',justifyContent:'space-between',fontWeight:700,fontSize:14,color:'var(--plum)'}}>
-                <span>Total Paid:</span>
-                <span>₹{(selectedOrder.amount || 0).toLocaleString('en-IN')}</span>
-              </div>
-            </div>
-
-            <div style={{textAlign:'right'}}>
-              <button onClick={() => setSelectedOrder(null)} className="admin-btn-secondary">
-                Close
-              </button>
             </div>
           </div>
         </div>
@@ -5520,100 +6064,11 @@ function AdminOrdersTab({orders, setOrders, toast}){
   );
 }
 
-// 4. CUSTOMER MANAGEMENT TAB
-function AdminCustomersTab({orders}){
-  const [searchTerm, setSearchTerm] = useState('');
-
-  // Extract unique customers from orders
-  const customerMap = {};
-  orders.forEach(o => {
-    const key = (o.email || o.customer || '').toLowerCase();
-    if (!customerMap[key]) {
-      customerMap[key] = {
-        name: o.customer,
-        mobile: o.mobile || '+91 98400 00000',
-        email: o.email || 'customer@example.com',
-        city: o.city || 'Coimbatore',
-        orderCount: 1,
-        totalSpent: o.amount || 0,
-        lastOrder: o.date
-      };
-    } else {
-      customerMap[key].orderCount += 1;
-      customerMap[key].totalSpent += (o.amount || 0);
-      customerMap[key].lastOrder = o.date;
-    }
-  });
-
-  const customerList = Object.values(customerMap);
-
-  const filtered = customerList.filter(c => {
-    return c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-           c.mobile.includes(searchTerm) ||
-           c.email.toLowerCase().includes(searchTerm.toLowerCase());
-  });
-
-  return (
-    <div>
-      <div style={{marginBottom:24}}>
-        <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
-          Customer Management
-        </h1>
-        <p style={{fontSize:13,color:'#6B7280'}}>
-          Registered atelier clients, order frequencies, and lifetime boutique expenditure.
-        </p>
-      </div>
-
-      <div className="admin-card" style={{padding:16,marginBottom:20}}>
-        <div style={{position:'relative',maxWidth:400}}>
-          <input
-            type="text"
-            className="admin-input"
-            placeholder="Search by customer name, mobile, or email..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            style={{paddingLeft:38}}
-          />
-          <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
-        </div>
-      </div>
-
-      <div className="admin-table-container">
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Customer Name</th>
-              <th>Mobile</th>
-              <th>Email</th>
-              <th>City</th>
-              <th>Orders</th>
-              <th>Total Spent</th>
-              <th>Last Order</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.map((c, i) => (
-              <tr key={i}>
-                <td style={{fontWeight:600,color:'var(--plum)'}}>{c.name}</td>
-                <td>{c.mobile}</td>
-                <td style={{color:'#6B7280'}}>{c.email}</td>
-                <td>{c.city}</td>
-                <td><span className="admin-badge admin-badge-info">{c.orderCount} order{c.orderCount > 1 ? 's' : ''}</span></td>
-                <td style={{fontWeight:600,color:'var(--plum)'}}>₹{c.totalSpent.toLocaleString('en-IN')}</td>
-                <td style={{fontSize:12,color:'#6B7280'}}>{c.lastOrder}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  );
-}
-
-// 5. CATEGORY MANAGEMENT TAB
+// 3. CATEGORIES TAB
 function AdminCategoriesTab({products}){
-  const sarees = products.filter(p => p.category === 'Sarees');
-  const salwars = products.filter(p => p.category === 'Salwars');
+  const activeList = products.filter(p => p.active !== false);
+  const sarees = activeList.filter(p => p.category === 'Sarees');
+  const salwars = activeList.filter(p => p.category === 'Salwars' || p.category === 'Salwar Sets');
 
   const categories = [
     {
@@ -5621,18 +6076,18 @@ function AdminCategoriesTab({products}){
       subtitle: 'The Saree Atelier',
       count: sarees.length,
       avgPrice: Math.round(sarees.reduce((s,p)=>s+p.price,0) / (sarees.length || 1)),
-      stock: sarees.reduce((s,p)=>s+(p.stock || 0),0),
+      stock: sarees.reduce((s,p)=>s+(Number(p.stock) || 0),0),
       desc: 'Handloom Kanjeevarams, Pure Banarasis, Organzas, and Soft Silk weaves handcrafted by master artisans.',
-      image: 'images/sarees/crimson-kanjeevaram.jpg'
+      image: (sarees[0] && sarees[0].images && sarees[0].images[0]) || 'images/sarees/crimson-kanjeevaram.jpg'
     },
     {
-      name: 'Salwars',
+      name: 'Salwar Sets',
       subtitle: 'The Salwar Journal',
       count: salwars.length,
       avgPrice: Math.round(salwars.reduce((s,p)=>s+p.price,0) / (salwars.length || 1)),
-      stock: salwars.reduce((s,p)=>s+(p.stock || 0),0),
-      desc: 'Bespoke tailored sets, Chanderi silhouettes, botanical embroidery, and hand-painted lotus dupattas with size options (S-XXL).',
-      image: 'images/salwars/mint-green-lotus-salwar.png'
+      stock: salwars.reduce((s,p)=>s+(Number(p.stock) || 0),0),
+      desc: 'Bespoke tailored sets, Chanderi silhouettes, botanical embroidery, and hand-painted lotus dupattas with size options (S-3XL).',
+      image: (salwars[0] && salwars[0].images && salwars[0].images[0]) || 'images/salwars/mint-green-lotus-salwar.png'
     }
   ];
 
@@ -5640,37 +6095,54 @@ function AdminCategoriesTab({products}){
     <div>
       <div style={{marginBottom:24}}>
         <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
-          Category Management
+          Collection Categories
         </h1>
         <p style={{fontSize:13,color:'#6B7280'}}>
-          Curated core atelier apparel divisions: Sarees &amp; Salwar Sets.
+          Live category architecture powering primary customer storefront navigation and catalog filters.
         </p>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',gap:24}}>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(320px, 1fr))',gap:20}}>
         {categories.map(cat => (
-          <div key={cat.name} className="admin-card" style={{display:'flex',gap:20,alignItems:'flex-start'}}>
-            <img
-              src={cat.image}
-              alt={cat.name}
-              style={{width:90,height:120,objectFit:'cover',borderRadius:8,border:'1px solid #E5E7EB'}}
-              onError={handleImgError}
-            />
-            <div style={{flex:1}}>
-              <span className="admin-badge admin-badge-purple" style={{marginBottom:6}}>ACTIVE ATELIER CATEGORY</span>
-              <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:20,fontWeight:600,color:'var(--plum)',margin:'4px 0'}}>
-                {cat.name}
-              </h2>
-              <p style={{fontSize:11,color:'var(--dusty-rose)',fontFamily:'Cinzel,serif',letterSpacing:'.1em',textTransform:'uppercase',marginBottom:8}}>
-                {cat.subtitle}
-              </p>
-              <p style={{fontSize:12,color:'#4B5563',lineHeight:1.5,marginBottom:12}}>
+          <div key={cat.name} className="admin-card" style={{overflow:'hidden',padding:0}}>
+            <div style={{height:180,position:'relative',overflow:'hidden',background:'#F3F4F6'}}>
+              <img src={cat.image} alt={cat.name} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={handleImgError}/>
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(to top, rgba(36,13,34,0.85), transparent)'}}/>
+              <div style={{position:'absolute',bottom:16,left:16,color:'#fff'}}>
+                <div style={{fontFamily:'Cinzel,serif',fontSize:10,letterSpacing:'.2em',textTransform:'uppercase',color:'var(--gold-light)'}}>
+                  {cat.subtitle}
+                </div>
+                <h3 style={{fontFamily:'Bodoni Moda,serif',fontSize:22,fontWeight:600,color:'#fff',marginTop:2}}>
+                  {cat.name}
+                </h3>
+              </div>
+            </div>
+
+            <div style={{padding:20}}>
+              <p style={{fontSize:12.5,lineHeight:1.6,color:'#4B5563',marginBottom:16}}>
                 {cat.desc}
               </p>
-              <div style={{display:'flex',gap:16,fontSize:12,color:'#374151',borderTop:'1px solid #F3F4F6',paddingTop:10}}>
-                <div><strong>{cat.count}</strong> Pieces</div>
-                <div>Avg: <strong>₹{cat.avgPrice.toLocaleString('en-IN')}</strong></div>
-                <div>Stock: <strong>{cat.stock}</strong> units</div>
+
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:8,padding:'12px 0',borderTop:'1px solid #F3F4F6',borderBottom:'1px solid #F3F4F6',marginBottom:16,textAlign:'center'}}>
+                <div>
+                  <div style={{fontSize:10,color:'#9CA3AF'}}>ACTIVE PIECES</div>
+                  <div style={{fontSize:16,fontWeight:700,color:'var(--plum)',marginTop:2}}>{cat.count}</div>
+                </div>
+                <div>
+                  <div style={{fontSize:10,color:'#9CA3AF'}}>AVG PRICE</div>
+                  <div style={{fontSize:16,fontWeight:700,color:'var(--plum)',marginTop:2}}>₹{cat.avgPrice.toLocaleString('en-IN')}</div>
+                </div>
+                <div>
+                  <div style={{fontSize:10,color:'#9CA3AF'}}>TOTAL UNITS</div>
+                  <div style={{fontSize:16,fontWeight:700,color:'var(--plum)',marginTop:2}}>{cat.stock}</div>
+                </div>
+              </div>
+
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                <span style={{fontSize:11,color:'#059669',fontWeight:600}}>● Active on Storefront</span>
+                <a href={cat.name === 'Sarees' ? '#/sarees' : '#/salwars'} target="_blank" rel="noopener noreferrer" style={{fontSize:12,color:'var(--dusty-rose)',textDecoration:'none',fontWeight:600}}>
+                  View Storefront →
+                </a>
               </div>
             </div>
           </div>
@@ -5680,24 +6152,33 @@ function AdminCategoriesTab({products}){
   );
 }
 
-// 6. INVENTORY MANAGEMENT TAB
+// 4. INVENTORY TAB (Connected to SrithiProductDB)
 function AdminInventoryTab({products, setProducts, toast}){
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStock, setFilterStock] = useState('all');
 
-  const updateStock = (productId, delta) => {
-    const updated = products.map(p => {
-      if (p.id === productId) {
-        const newStock = Math.max(0, (p.stock || 0) + delta);
-        return {...p, stock: newStock};
-      }
-      return p;
-    });
-    setProducts(updated);
-    try { localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(updated)); } catch(e){}
-    toast('Stock updated');
+  const updateStock = async (productId, delta) => {
+    const p = products.find(prod => prod.id === productId);
+    if (!p) return;
+    const current = Number(p.stock) || 0;
+    const newStock = Math.max(0, current + delta);
+    try {
+      await SrithiProductDB.updateStock(productId, newStock);
+      toast('Stock updated to ' + newStock);
+    } catch(err) {
+      toast('Failed to update stock');
+    }
   };
 
-  const filtered = products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const filtered = useMemo(() => {
+    return products.filter(p => {
+      const matchSearch = (p.name || '').toLowerCase().includes(searchTerm.toLowerCase());
+      const stock = Number(p.stock) || 0;
+      if (filterStock === 'low') return matchSearch && stock > 0 && stock <= 5;
+      if (filterStock === 'out') return matchSearch && stock === 0;
+      return matchSearch;
+    });
+  }, [products, searchTerm, filterStock]);
 
   return (
     <div>
@@ -5706,121 +6187,140 @@ function AdminInventoryTab({products, setProducts, toast}){
           Inventory Management
         </h1>
         <p style={{fontSize:13,color:'#6B7280'}}>
-          Live stock tracking across Sarees and Salwars with size-level breakdowns and stock level alerts.
+          Live stock tracking across Sarees and Salwars with instant persistence to the database.
         </p>
       </div>
 
       <div className="admin-card" style={{padding:16,marginBottom:20}}>
-        <div style={{position:'relative',maxWidth:400}}>
-          <input
-            type="text"
-            className="admin-input"
-            placeholder="Search inventory by product name..."
-            value={searchTerm}
-            onChange={e => setSearchTerm(e.target.value)}
-            style={{paddingLeft:38}}
-          />
-          <IcoSearch style={{position:'absolute',left:12,top:13,width:16,height:16,color:'#9CA3AF'}}/>
+        <div style={{display:'flex',gap:12,alignItems:'center',flexWrap:'wrap'}}>
+          <div style={{position:'relative',flex:1,minWidth:240}}>
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Search inventory by product name..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{paddingLeft:38}}
+            />
+            <IcoSearch style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',width:16,height:16,color:'#9CA3AF'}}/>
+          </div>
+          <div style={{display:'flex',gap:6}}>
+            {[
+              { id: 'all', label: 'All Stock' },
+              { id: 'low', label: 'Low Stock (≤5)' },
+              { id: 'out', label: 'Out of Stock' }
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={()=>setFilterStock(f.id)}
+                style={{
+                  padding:'8px 14px',
+                  fontSize:12,
+                  fontFamily:'Plus Jakarta Sans,sans-serif',
+                  fontWeight:600,
+                  borderRadius:3,
+                  border:'1px solid ' + (filterStock === f.id ? 'var(--plum)' : '#E5E7EB'),
+                  background: filterStock === f.id ? 'var(--plum)' : '#fff',
+                  color: filterStock === f.id ? '#fff' : '#4B5563',
+                  cursor:'pointer'
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div className="admin-table-container">
+      <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
             <tr>
-              <th>Product</th>
-              <th>Category</th>
-              <th>Stock Status</th>
-              <th>Sizes Breakdown</th>
-              <th style={{textAlign:'center'}}>Current Stock</th>
-              <th style={{textAlign:'right'}}>Adjust Stock</th>
+              <th>SILHOUETTE</th>
+              <th>CATEGORY</th>
+              <th>PRICE</th>
+              <th>CURRENT STOCK</th>
+              <th>STATUS</th>
+              <th style={{textAlign:'right'}}>QUICK ADJUST</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(p => {
-              const stock = p.stock || 0;
-              let statusLabel = 'In Stock';
-              let badgeClass = 'admin-badge-success';
-
-              if (stock === 0) {
-                statusLabel = 'Out of Stock';
-                badgeClass = 'admin-badge-danger';
-              } else if (stock < 10) {
-                statusLabel = 'Low Stock';
-                badgeClass = 'admin-badge-warning';
-              }
-
-              return (
-                <tr key={p.id}>
-                  <td style={{display:'flex',alignItems:'center',gap:12}}>
-                    <img
-                      src={p.images[0]}
-                      alt={p.name}
-                      style={{width:36,height:46,objectFit:'cover',borderRadius:4}}
-                      onError={handleImgError}
-                    />
-                    <div>
-                      <div style={{fontWeight:600,color:'var(--plum)'}}>{p.name}</div>
-                      <div style={{fontSize:11,color:'#6B7280'}}>{fmt(p.price)}</div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className={'admin-badge ' + (p.category === 'Sarees' ? 'admin-badge-purple' : 'admin-badge-info')}>
-                      {p.category}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={'admin-badge ' + badgeClass}>
-                      {statusLabel}
-                    </span>
-                  </td>
-                  <td>
-                    {p.category === 'Salwars' ? (
-                      <div style={{display:'flex',gap:4}}>
-                        {['S','M','L','XL','XXL'].map(sz => (
-                          <span key={sz} style={{fontSize:10,background:'#F3F4F6',padding:'2px 6px',borderRadius:4,color:'#374151'}}>
-                            {sz}: {Math.max(1, Math.round(stock / 5))}
-                          </span>
-                        ))}
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{textAlign:'center',padding:40,color:'#9CA3AF'}}>
+                  No inventory records match your criteria.
+                </td>
+              </tr>
+            ) : (
+              filtered.map(p => {
+                const stock = Number(p.stock) || 0;
+                const isOut = stock === 0;
+                const isLow = stock > 0 && stock <= 5;
+                const primaryImg = (Array.isArray(p.images) && p.images[0]) || 'images/sarees/crimson-kanjeevaram.jpg';
+                return (
+                  <tr key={p.id}>
+                    <td>
+                      <div style={{display:'flex',alignItems:'center',gap:12}}>
+                        <div style={{width:40,height:50,borderRadius:2,overflow:'hidden',background:'#F3F4F6',flexShrink:0}}>
+                          <img src={primaryImg} alt={p.name} style={{width:'100%',height:'100%',objectFit:'cover'}} onError={handleImgError}/>
+                        </div>
+                        <div>
+                          <div style={{fontWeight:600,color:'var(--plum)'}}>{p.name}</div>
+                          <div style={{fontSize:11,color:'#9CA3AF'}}>#{p.id}</div>
+                        </div>
                       </div>
-                    ) : (
-                      <span style={{fontSize:11,color:'#6B7280'}}>Standard Free Size</span>
-                    )}
-                  </td>
-                  <td style={{textAlign:'center',fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:700,color:'var(--plum)'}}>
-                    {stock}
-                  </td>
-                  <td style={{textAlign:'right'}}>
-                    <div style={{display:'inline-flex',gap:4}}>
-                      <button
-                        onClick={() => updateStock(p.id, -1)}
-                        className="admin-btn-secondary"
-                        style={{padding:'4px 10px'}}
-                        title="Decrease stock"
-                      >
-                        -
-                      </button>
-                      <button
-                        onClick={() => updateStock(p.id, 1)}
-                        className="admin-btn-secondary"
-                        style={{padding:'4px 10px'}}
-                        title="Increase stock"
-                      >
-                        +
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+                    </td>
+                    <td>{p.category}</td>
+                    <td>{fmt(p.price)}</td>
+                    <td>
+                      <span style={{fontSize:14,fontWeight:700,color: isOut ? '#DC2626' : (isLow ? '#D97706' : '#059669')}}>
+                        {stock} unit{stock !== 1 ? 's' : ''}
+                      </span>
+                    </td>
+                    <td>
+                      {isOut ? (
+                        <span className="admin-badge admin-badge-cancelled">Out of Stock</span>
+                      ) : isLow ? (
+                        <span className="admin-badge admin-badge-shipped">Low Stock</span>
+                      ) : (
+                        <span className="admin-badge admin-badge-delivered">In Stock</span>
+                      )}
+                    </td>
+                    <td style={{textAlign:'right'}}>
+                      <div style={{display:'inline-flex',gap:6,alignItems:'center'}}>
+                        <button
+                          onClick={()=>updateStock(p.id, -1)}
+                          style={{width:26,height:26,background:'#F3F4F6',border:'1px solid #D1D5DB',borderRadius:2,cursor:'pointer',fontSize:14}}
+                          title="Decrease 1"
+                        >
+                          −
+                        </button>
+                        <button
+                          onClick={()=>updateStock(p.id, 1)}
+                          style={{width:26,height:26,background:'#F3F4F6',border:'1px solid #D1D5DB',borderRadius:2,cursor:'pointer',fontSize:14}}
+                          title="Increase 1"
+                        >
+                          +
+                        </button>
+                        <button
+                          onClick={()=>updateStock(p.id, 5)}
+                          style={{padding:'0 8px',height:26,background:'#F3F4F6',border:'1px solid #D1D5DB',borderRadius:2,cursor:'pointer',fontSize:11}}
+                          title="Add 5"
+                        >
+                          +5
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
-
-// 7. OFFERS MANAGEMENT TAB
 function AdminOffersTab({offers, setOffers, toast}){
   const [modalOpen, setModalOpen] = useState(false);
   const [newOffer, setNewOffer] = useState({
@@ -6214,65 +6714,40 @@ function App(){
   const [cartOpen,setCartOpen]=useState(false);
   const [searchQuery,setSearchQuery]=useState('');
 
-  // 1. DYNAMIC DATA COLLECTIONS (Synchronized with localStorage & Admin CRUD)
+  // 1. DYNAMIC DATA COLLECTIONS (Synchronized with SrithiProductDB as Single Source of Truth)
   const [products, setProducts] = useState(() => {
-    try {
-      const saved = localStorage.getItem('SRITHI_PRODUCTS_V3');
-      if (saved) {
-        let parsed = JSON.parse(saved);
-        [1, 2, 3, 4, 21, 22, 23, 24, 25, 26, 27].forEach(targetId => {
-          const fresh = ALL_PRODUCTS.find(p => p.id === targetId);
-          if (fresh) {
-            if (parsed.some(p => p.id === targetId)) {
-              parsed = parsed.map(p => p.id === targetId ? fresh : p);
-            } else {
-              parsed = [fresh, ...parsed];
-            }
-          }
-        });
-        // Sanitize and guarantee correct numeric prices & zero discounts for uploaded items
-        parsed = parsed.map(p => {
-          if (p.id === 25) {
-            return { ...p, price: 2099, originalPrice: 2099, discount: 0, sizes: ["L", "XL", "XXL", "3XL"] };
-          }
-          if (p.id === 24) {
-            return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["L", "XL", "XXL"] };
-          }
-          if (p.id === 23) {
-            return { ...p, price: 2099, originalPrice: 2099, discount: 0, sizes: ["L", "XL", "XXL"] };
-          }
-          if (p.id === 22) {
-            return { ...p, price: 2099, originalPrice: 2099, discount: 0, sizes: ["M", "L", "XL", "XXL"] };
-          }
-          if (p.id === 21) {
-            return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["M", "L", "XL", "XXL"] };
-          }
-          if (p.id === 4) {
-            return { ...p, price: 12000, originalPrice: 12000, discount: 0 };
-          }
-          if (p.id === 3) {
-            return { ...p, price: 12000, originalPrice: 12000, discount: 0 };
-          }
-          if (p.id === 27) {
-            return { ...p, price: 2799, originalPrice: 2799, discount: 0, sizes: ["L", "XL", "XXL"] };
-          }
-          if (p.id === 2) {
-            return { ...p, price: 11000, originalPrice: 11000, discount: 0 };
-          }
-          if (p.id === 1) {
-            return { ...p, price: 12000, originalPrice: 12000, discount: 0 };
-          }
-          if (p.id === 26) {
-            return { ...p, price: 2199, originalPrice: 2199, discount: 0 };
-          }
-          return p;
-        });
-        localStorage.setItem('SRITHI_PRODUCTS_V3', JSON.stringify(parsed));
-        return parsed;
-      }
-    } catch(e) {}
-    return ALL_PRODUCTS;
+    return SrithiProductDB.getSynchronousAll({ includeInactive: true });
   });
+
+  // Cross-tab and persistent database synchronization
+  useEffect(() => {
+    SrithiProductDB.init().then(prods => {
+      if (prods && Array.isArray(prods)) {
+        setProducts(prods);
+      }
+    });
+
+    const unsubscribe = SrithiProductDB.subscribe(updated => {
+      setProducts(updated);
+    });
+
+    const handleStorage = (e) => {
+      if (e.key === 'SRITHI_PRODUCTS_V3' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (Array.isArray(parsed)) {
+            setProducts(parsed);
+          }
+        } catch(err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+
+    return () => {
+      unsubscribe();
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
 
   const [orders, setOrders] = useState(() => {
     try {
@@ -6324,6 +6799,24 @@ function App(){
   },[]);
 
   const toast=(msg)=>{const id=Date.now();setToasts(t=>[...t,{id,msg}]);};
+
+  // Derive enriched cart using latest product information from products state
+  const enrichedCart = useMemo(() => {
+    return cart.map(item => {
+      const prod = products.find(p => p.id === item.id);
+      if (!prod) return item;
+      return {
+        ...item,
+        name: prod.name || item.name,
+        price: prod.price !== undefined ? prod.price : item.price,
+        originalPrice: prod.originalPrice !== undefined ? prod.originalPrice : item.originalPrice,
+        images: prod.images || item.images,
+        fabric: prod.fabric || item.fabric,
+        stock: prod.stock !== undefined ? prod.stock : 10,
+        active: prod.active !== false
+      };
+    });
+  }, [cart, products]);
 
   const addToCart=useCallback((product,size)=>{
     setCart(c=>{
@@ -6552,12 +7045,12 @@ function App(){
 
   return(
     <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
-      <FloatingHeader cart={cart} wishlist={wishlist} onSearch={()=>setSearchOpen(true)} onCartOpen={()=>setCartOpen(true)}/>
+      <FloatingHeader cart={enrichedCart} wishlist={wishlist} onSearch={()=>setSearchOpen(true)} onCartOpen={()=>setCartOpen(true)}/>
       <main style={{flex:1}}>{renderContent()}</main>
       <DarkFooter/>
       {searchOpen&&<SearchOverlayV3 onClose={()=>setSearchOpen(false)} onSearch={(q)=>{setSearchQuery(q);window.location.hash='#/search';}}/>}
-      {cartOpen&&<ShoppingBagDrawer cart={cart} updateQty={updateQty} removeFromCart={removeFromCart} onClose={()=>setCartOpen(false)}/>}
-      <MobileBottomNavV3 page={page} wishlist={wishlist} cart={cart} onCartOpen={()=>setCartOpen(true)}/>
+      {cartOpen&&<ShoppingBagDrawer cart={enrichedCart} updateQty={updateQty} removeFromCart={removeFromCart} onClose={()=>setCartOpen(false)}/>}
+      <MobileBottomNavV3 page={page} wishlist={wishlist} cart={enrichedCart} onCartOpen={()=>setCartOpen(true)}/>
       {toasts.slice(-1).map(t=><Toast key={t.id} message={t.msg} onDone={()=>setToasts(ts=>ts.filter(x=>x.id!==t.id))}/>)}
     </div>
   );
