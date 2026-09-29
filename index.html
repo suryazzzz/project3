@@ -2025,6 +2025,25 @@ body{
   cursor: pointer;
   transition: all 0.15s ease;
 }
+.admin-btn-danger {
+  padding: 6px 12px;
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.admin-btn-danger:hover {
+  background: #DC2626;
+  color: #FFFFFF;
+  border-color: #DC2626;
+}
 .admin-btn-secondary:hover {
   background: #F3F4F6;
   border-color: #9CA3AF;
@@ -4394,6 +4413,7 @@ const IcoAdminSettings=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="cu
 const IcoAdminLogout=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>;
 const IcoEye=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>;
 const IcoEyeOff=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>;
+const IcoPencil=p=><IcoEdit {...p}/>;
 const IcoEdit=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 const IcoPlus=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>;
 const IcoCheck=p=><svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>;
@@ -5651,7 +5671,7 @@ function AdminProductsTab({products, setProducts, toast}){
                           onClick={()=>openEditModal(p)}
                           title="Edit product details, pricing, images, stock"
                         >
-                          <IcoPencil style={{width:13,height:13,marginRight:4}}/> Edit
+                          <IcoEdit style={{width:13,height:13,marginRight:4}}/> Edit
                         </button>
                         <button
                           className="admin-btn-danger"
@@ -6064,7 +6084,619 @@ function AdminProductsTab({products, setProducts, toast}){
   );
 }
 
-// 3. CATEGORIES TAB
+
+
+
+
+// ============================================================================
+// 3. ORDERS TAB (Full Order Lifecycle & Fulfillment Manager)
+// ============================================================================
+function AdminOrdersTab({orders, setOrders, toast}){
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('All');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const statuses = ['All', 'Confirmed', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+
+  const filteredOrders = useMemo(() => {
+    let list = orders;
+    if (searchTerm.trim()) {
+      const q = searchTerm.toLowerCase().trim();
+      list = list.filter(o =>
+        (o.id && String(o.id).toLowerCase().includes(q)) ||
+        (o.customer && o.customer.toLowerCase().includes(q)) ||
+        (o.mobile && o.mobile.toLowerCase().includes(q)) ||
+        (o.email && o.email.toLowerCase().includes(q)) ||
+        (o.city && o.city.toLowerCase().includes(q))
+      );
+    }
+    if (statusFilter !== 'All') {
+      list = list.filter(o => o.status === statusFilter);
+    }
+    return list;
+  }, [orders, searchTerm, statusFilter]);
+
+  const updateOrderStatus = (orderId, newStatus) => {
+    const updated = orders.map(o => {
+      if (o.id === orderId) {
+        return { ...o, status: newStatus };
+      }
+      return o;
+    });
+    setOrders(updated);
+    try {
+      localStorage.setItem('SRITHI_ORDERS_V3', JSON.stringify(updated));
+    } catch(e) {}
+    if (toast) toast('Order ' + orderId + ' updated to ' + newStatus);
+    if (selectedOrder && selectedOrder.id === orderId) {
+      setSelectedOrder(prev => ({ ...prev, status: newStatus }));
+    }
+  };
+
+  const deleteOrder = (orderId) => {
+    if (!window.confirm('Are you sure you want to delete order ' + orderId + '?')) return;
+    const updated = orders.filter(o => o.id !== orderId);
+    setOrders(updated);
+    try {
+      localStorage.setItem('SRITHI_ORDERS_V3', JSON.stringify(updated));
+    } catch(e) {}
+    if (toast) toast('Order ' + orderId + ' removed');
+    if (selectedOrder && selectedOrder.id === orderId) {
+      setSelectedOrder(null);
+    }
+  };
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:16,marginBottom:24}}>
+        <div>
+          <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+            Orders &amp; Dispatch Management
+          </h1>
+          <p style={{fontSize:13,color:'#6B7280'}}>
+            Manage client orders, track delivery lifecycles, and coordinate bespoke Coimbatore studio dispatches.
+          </p>
+        </div>
+      </div>
+
+      {/* Filter and Search Controls */}
+      <div className="admin-card" style={{padding:16,marginBottom:20}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))',gap:12,alignItems:'center'}}>
+          <div style={{position:'relative',gridColumn:'span 2',minWidth:240}}>
+            <input
+              type="text"
+              className="admin-input"
+              placeholder="Search by Order ID, client name, mobile, city..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{paddingLeft:36}}
+            />
+            <IcoSearch style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',width:16,height:16,color:'#9CA3AF'}}/>
+            {searchTerm && (
+              <button
+                onClick={()=>setSearchTerm('')}
+                style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#9CA3AF',cursor:'pointer',fontSize:14}}
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div>
+            <select
+              className="admin-input"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+            >
+              {statuses.map(st => (
+                <option key={st} value={st}>{st === 'All' ? 'All Order Statuses' : st}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div style={{marginTop:12,paddingTop:12,borderTop:'1px solid #F3F4F6',display:'flex',justifyContent:'space-between',fontSize:12,color:'#6B7280'}}>
+          <span>Showing <strong>{filteredOrders.length}</strong> of <strong>{orders.length}</strong> orders</span>
+          {(searchTerm || statusFilter !== 'All') && (
+            <button
+              onClick={()=>{setSearchTerm('');setStatusFilter('All');}}
+              style={{background:'none',border:'none',color:'var(--dusty-rose)',cursor:'pointer',textDecoration:'underline',fontSize:12}}
+            >
+              Reset Filters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Orders Table */}
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>ORDER ID</th>
+              <th>CLIENT &amp; LOCATION</th>
+              <th>ITEMS ORDERED</th>
+              <th>AMOUNT &amp; PAYMENT</th>
+              <th>STATUS</th>
+              <th style={{textAlign:'right'}}>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredOrders.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{textAlign:'center',padding:'40px 20px',color:'#9CA3AF'}}>
+                  No orders match your search criteria.
+                </td>
+              </tr>
+            ) : (
+              filteredOrders.map(o => {
+                const itemsList = Array.isArray(o.items) ? o.items : [];
+                return (
+                  <tr key={o.id}>
+                    <td>
+                      <div style={{fontFamily:'Cinzel,serif',fontWeight:700,fontSize:13,color:'var(--plum)'}}>
+                        #{String(o.id).replace('#','')}
+                      </div>
+                      <div style={{fontSize:11,color:'#9CA3AF',marginTop:3}}>
+                        {o.date || 'Recent Order'}
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{fontWeight:600,color:'#111827'}}>{o.customer}</div>
+                      <div style={{fontSize:11,color:'#6B7280'}}>{o.city || 'India'}, {o.state || ''}</div>
+                      <div style={{fontSize:11,color:'#9CA3AF'}}>{o.mobile}</div>
+                    </td>
+                    <td style={{maxWidth:240}}>
+                      {itemsList.length === 0 ? (
+                        <span style={{fontSize:12,color:'#6B7280'}}>{o.product || 'Bespoke Order'}</span>
+                      ) : (
+                        <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                          {itemsList.map((it, idx) => (
+                            <div key={idx} style={{display:'flex',alignItems:'center',gap:8,fontSize:12}}>
+                              {it.image && (
+                                <img
+                                  src={it.image}
+                                  alt={it.name}
+                                  style={{width:28,height:36,objectFit:'cover',borderRadius:2,background:'#FAF5F2',flexShrink:0}}
+                                  onError={handleImgError}
+                                />
+                              )}
+                              <div>
+                                <div style={{fontWeight:500,color:'var(--plum)',maxWidth:180,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>
+                                  {it.name}
+                                </div>
+                                <div style={{fontSize:10.5,color:'#9CA3AF'}}>
+                                  Qty: {it.qty} {it.size ? '· Size ' + it.size : ''}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <div style={{fontFamily:'Bodoni Moda,serif',fontSize:15,fontWeight:600,color:'var(--plum)'}}>
+                        ₹{(o.amount || 0).toLocaleString('en-IN')}
+                      </div>
+                      <div style={{fontSize:10.5,color:'#059669',fontWeight:500,marginTop:2}}>
+                        {o.paymentMethod || 'Prepaid'}
+                      </div>
+                    </td>
+                    <td>
+                      <select
+                        value={o.status || 'Confirmed'}
+                        onChange={(e)=>updateOrderStatus(o.id, e.target.value)}
+                        style={{
+                          padding:'4px 8px',
+                          fontSize:11,
+                          fontWeight:600,
+                          borderRadius:4,
+                          border:'1px solid #D1D5DB',
+                          background:'#FFF',
+                          cursor:'pointer',
+                          color: o.status === 'Delivered' ? '#065F46' : o.status === 'Cancelled' ? '#991B1B' : '#1E40AF'
+                        }}
+                      >
+                        <option value="Confirmed">Confirmed</option>
+                        <option value="Processing">Processing</option>
+                        <option value="Shipped">Shipped</option>
+                        <option value="Delivered">Delivered</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
+                    </td>
+                    <td style={{textAlign:'right'}}>
+                      <div style={{display:'inline-flex',gap:6}}>
+                        <button
+                          className="admin-btn-secondary"
+                          style={{padding:'6px 10px',fontSize:11}}
+                          onClick={()=>setSelectedOrder(o)}
+                          title="View order details and shipping manifest"
+                        >
+                          <IcoEye style={{width:13,height:13,marginRight:4}}/> View
+                        </button>
+                        <button
+                          className="admin-btn-danger"
+                          style={{padding:'6px 8px',fontSize:11}}
+                          onClick={()=>deleteOrder(o.id)}
+                          title="Delete Order"
+                        >
+                          <IcoTrash style={{width:13,height:13}}/>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Order Detail Modal */}
+      {selectedOrder && (
+        <div className="admin-modal-overlay" onClick={()=>setSelectedOrder(null)}>
+          <div className="admin-modal-content" style={{maxWidth:600}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
+              <div>
+                <p style={{fontFamily:'Cinzel,serif',fontSize:11,letterSpacing:'.15em',color:'var(--dusty-rose)',textTransform:'uppercase',marginBottom:2}}>
+                  ORDER MANIFEST &amp; INVOICE
+                </p>
+                <h3 style={{fontFamily:'Bodoni Moda,serif',fontSize:22,color:'var(--plum)',margin:0}}>
+                  #{String(selectedOrder.id).replace('#','')}
+                </h3>
+                <span style={{fontSize:12,color:'#6B7280'}}>Placed on {selectedOrder.date || 'Recent'}</span>
+              </div>
+              <button
+                onClick={()=>setSelectedOrder(null)}
+                style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9CA3AF'}}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Client Info Grid */}
+            <div style={{background:'#F9FAFB',padding:16,borderRadius:8,marginBottom:20,display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,fontSize:12}}>
+              <div>
+                <span style={{color:'#9CA3AF',fontSize:10.5,textTransform:'uppercase',fontWeight:600,display:'block',marginBottom:2}}>Client Information</span>
+                <strong style={{fontSize:13,color:'#111827'}}>{selectedOrder.customer}</strong>
+                <div style={{color:'#4B5563',marginTop:2}}>{selectedOrder.mobile}</div>
+                <div style={{color:'#6B7280'}}>{selectedOrder.email || 'N/A'}</div>
+              </div>
+              <div>
+                <span style={{color:'#9CA3AF',fontSize:10.5,textTransform:'uppercase',fontWeight:600,display:'block',marginBottom:2}}>Shipping Address</span>
+                <div style={{color:'#374151',lineHeight:1.4}}>
+                  {selectedOrder.address || 'Address provided at checkout'},<br/>
+                  {selectedOrder.city}, {selectedOrder.state} - {selectedOrder.pincode}
+                </div>
+              </div>
+            </div>
+
+            {/* Items Breakdown */}
+            <div style={{marginBottom:20}}>
+              <span style={{fontSize:11,fontWeight:600,letterSpacing:'.08em',color:'#374151',textTransform:'uppercase',display:'block',marginBottom:10}}>
+                Items Ordered
+              </span>
+              <div style={{border:'1px solid #E5E7EB',borderRadius:6,overflow:'hidden'}}>
+                {(Array.isArray(selectedOrder.items) ? selectedOrder.items : []).map((it, idx) => (
+                  <div key={idx} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 14px',borderBottom:idx < selectedOrder.items.length - 1 ? '1px solid #F3F4F6' : 'none'}}>
+                    {it.image && (
+                      <img src={it.image} alt={it.name} style={{width:36,height:46,objectFit:'cover',borderRadius:3,background:'#FAF5F2'}} onError={handleImgError}/>
+                    )}
+                    <div style={{flex:1}}>
+                      <div style={{fontWeight:600,fontSize:13,color:'var(--plum)'}}>{it.name}</div>
+                      <div style={{fontSize:11,color:'#6B7280'}}>
+                        Category: {it.category || 'Atelier'} {it.size ? '· Size: ' + it.size : ''}
+                      </div>
+                    </div>
+                    <div style={{textAlign:'right'}}>
+                      <div style={{fontSize:13,fontWeight:600,color:'var(--plum)'}}>₹{((it.price || 0) * (it.qty || 1)).toLocaleString('en-IN')}</div>
+                      <div style={{fontSize:11,color:'#9CA3AF'}}>₹{(it.price || 0).toLocaleString('en-IN')} × {it.qty || 1}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Totals Summary */}
+            <div style={{background:'#FFF',border:'1px solid #E5E7EB',borderRadius:6,padding:'12px 16px',marginBottom:24,fontSize:12.5}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,color:'#6B7280'}}>
+                <span>Subtotal</span>
+                <span>₹{(selectedOrder.subtotal || selectedOrder.amount || 0).toLocaleString('en-IN')}</span>
+              </div>
+              {selectedOrder.discount > 0 && (
+                <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,color:'#059669'}}>
+                  <span>Atelier Savings</span>
+                  <span>-₹{selectedOrder.discount.toLocaleString('en-IN')}</span>
+                </div>
+              )}
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:6,color:'#6B7280'}}>
+                <span>Delivery (Express Insured)</span>
+                <span>{selectedOrder.delivery === 0 ? 'Complimentary' : '₹' + (selectedOrder.delivery || 0)}</span>
+              </div>
+              <div style={{display:'flex',justifyContent:'space-between',paddingTop:8,borderTop:'1px solid #E5E7EB',fontSize:15,fontWeight:700,color:'var(--plum)'}}>
+                <span>Total Paid</span>
+                <span>₹{(selectedOrder.amount || 0).toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <span style={{fontSize:12,color:'#6B7280'}}>Update Status:</span>
+                <select
+                  value={selectedOrder.status || 'Confirmed'}
+                  onChange={(e)=>updateOrderStatus(selectedOrder.id, e.target.value)}
+                  style={{padding:'6px 10px',fontSize:12,fontWeight:600,borderRadius:4,border:'1px solid #D1D5DB'}}
+                >
+                  <option value="Confirmed">Confirmed</option>
+                  <option value="Processing">Processing</option>
+                  <option value="Shipped">Shipped</option>
+                  <option value="Delivered">Delivered</option>
+                  <option value="Cancelled">Cancelled</option>
+                </select>
+              </div>
+              <button
+                className="admin-btn-primary"
+                style={{width:'auto',padding:'8px 18px',fontSize:11}}
+                onClick={()=>window.print()}
+              >
+                Print Receipt
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// 4. CUSTOMERS TAB (Clientele Directory & Atelier Patrons)
+// ============================================================================
+function AdminCustomersTab({orders}){
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
+
+  // Aggregate unique customers from order history
+  const customersList = useMemo(() => {
+    const map = new Map();
+    (orders || []).forEach(o => {
+      const key = (o.email && o.email.trim()) || (o.mobile && o.mobile.trim()) || (o.customer && o.customer.trim()) || 'Guest';
+      if (!map.has(key)) {
+        map.set(key, {
+          id: key,
+          name: o.customer || 'Guest Client',
+          mobile: o.mobile || 'N/A',
+          email: o.email || 'N/A',
+          city: o.city || 'India',
+          state: o.state || '',
+          totalOrders: 0,
+          totalSpent: 0,
+          orders: [],
+          lastOrderDate: o.date || 'Recent'
+        });
+      }
+      const record = map.get(key);
+      record.totalOrders += 1;
+      record.totalSpent += (Number(o.amount) || 0);
+      record.orders.push(o);
+      if (o.date) record.lastOrderDate = o.date;
+    });
+    return Array.from(map.values());
+  }, [orders]);
+
+  const filteredCustomers = useMemo(() => {
+    if (!searchTerm.trim()) return customersList;
+    const q = searchTerm.toLowerCase().trim();
+    return customersList.filter(c =>
+      c.name.toLowerCase().includes(q) ||
+      c.city.toLowerCase().includes(q) ||
+      c.mobile.toLowerCase().includes(q) ||
+      c.email.toLowerCase().includes(q)
+    );
+  }, [customersList, searchTerm]);
+
+  const totalClients = customersList.length;
+  const totalRevenue = customersList.reduce((s, c) => s + c.totalSpent, 0);
+  const avgSpend = totalClients > 0 ? Math.round(totalRevenue / totalClients) : 0;
+
+  return (
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',flexWrap:'wrap',gap:16,marginBottom:24}}>
+        <div>
+          <h1 style={{fontFamily:'Bodoni Moda,serif',fontSize:26,fontWeight:600,color:'var(--plum)',marginBottom:4}}>
+            Clientele &amp; Patrons Directory
+          </h1>
+          <p style={{fontSize:13,color:'#6B7280'}}>
+            Registered buyers, order history, lifetime patronage, and client concierge relations.
+          </p>
+        </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="admin-grid-4" style={{marginBottom:20}}>
+        <div className="admin-card">
+          <div className="admin-stat-label">TOTAL CLIENTS</div>
+          <div className="admin-stat-val">{totalClients}</div>
+          <div className="admin-stat-sub">Registered buyers</div>
+        </div>
+        <div className="admin-card">
+          <div className="admin-stat-label">AVERAGE SPEND</div>
+          <div className="admin-stat-val">₹{avgSpend.toLocaleString('en-IN')}</div>
+          <div className="admin-stat-sub">Per atelier patron</div>
+        </div>
+        <div className="admin-card">
+          <div className="admin-stat-label">REPEAT CLIENTS</div>
+          <div className="admin-stat-val">{customersList.filter(c => c.totalOrders > 1).length}</div>
+          <div className="admin-stat-sub">Clients with &gt;1 order</div>
+        </div>
+        <div className="admin-card">
+          <div className="admin-stat-label">TOP LOCATION</div>
+          <div className="admin-stat-val" style={{fontSize:20}}>Coimbatore / TN</div>
+          <div className="admin-stat-sub">Primary clientele hub</div>
+        </div>
+      </div>
+
+      {/* Search Input */}
+      <div className="admin-card" style={{padding:16,marginBottom:20}}>
+        <div style={{position:'relative',maxWidth:400}}>
+          <input
+            type="text"
+            className="admin-input"
+            placeholder="Search by client name, mobile, email, city..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            style={{paddingLeft:36}}
+          />
+          <IcoSearch style={{position:'absolute',left:12,top:'50%',transform:'translateY(-50%)',width:16,height:16,color:'#9CA3AF'}}/>
+          {searchTerm && (
+            <button
+              onClick={()=>setSearchTerm('')}
+              style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',background:'none',border:'none',color:'#9CA3AF',cursor:'pointer',fontSize:14}}
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Customers Table */}
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>CLIENT</th>
+              <th>CONTACT DETAILS</th>
+              <th>LOCATION</th>
+              <th>ORDERS</th>
+              <th>TOTAL SPEND</th>
+              <th style={{textAlign:'right'}}>ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredCustomers.length === 0 ? (
+              <tr>
+                <td colSpan="6" style={{textAlign:'center',padding:'40px 20px',color:'#9CA3AF'}}>
+                  No clients match your search criteria.
+                </td>
+              </tr>
+            ) : (
+              filteredCustomers.map(c => (
+                <tr key={c.id}>
+                  <td>
+                    <div style={{display:'flex',alignItems:'center',gap:10}}>
+                      <div style={{width:34,height:34,borderRadius:'50%',background:'rgba(36,13,34,0.08)',color:'var(--plum)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:13,fontFamily:'Cinzel,serif'}}>
+                        {(c.name || 'C').charAt(0).toUpperCase()}
+                      </div>
+                      <div>
+                        <div style={{fontWeight:600,color:'#111827'}}>{c.name}</div>
+                        {c.totalSpent >= 5000 && (
+                          <span className="admin-badge admin-badge-purple" style={{fontSize:9.5,padding:'1px 6px',marginTop:2}}>
+                            VIP Patron
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{fontSize:12,color:'#374151'}}>{c.mobile}</div>
+                    <div style={{fontSize:11,color:'#9CA3AF'}}>{c.email}</div>
+                  </td>
+                  <td>
+                    <div style={{fontSize:12,color:'#374151'}}>{c.city}</div>
+                    <div style={{fontSize:11,color:'#9CA3AF'}}>{c.state}</div>
+                  </td>
+                  <td>
+                    <strong style={{color:'var(--plum)'}}>{c.totalOrders}</strong> order{c.totalOrders > 1 ? 's' : ''}
+                  </td>
+                  <td>
+                    <div style={{fontFamily:'Bodoni Moda,serif',fontSize:15,fontWeight:600,color:'var(--plum)'}}>
+                      ₹{c.totalSpent.toLocaleString('en-IN')}
+                    </div>
+                  </td>
+                  <td style={{textAlign:'right'}}>
+                    <button
+                      className="admin-btn-secondary"
+                      style={{padding:'6px 12px',fontSize:11}}
+                      onClick={()=>setSelectedCustomer(c)}
+                    >
+                      <IcoEye style={{width:13,height:13,marginRight:4}}/> History
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Customer Orders History Modal */}
+      {selectedCustomer && (
+        <div className="admin-modal-overlay" onClick={()=>setSelectedCustomer(null)}>
+          <div className="admin-modal-content" style={{maxWidth:600}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}}>
+              <div>
+                <p style={{fontFamily:'Cinzel,serif',fontSize:11,letterSpacing:'.15em',color:'var(--dusty-rose)',textTransform:'uppercase',marginBottom:2}}>
+                  CLIENT PROFILE &amp; PATRONAGE
+                </p>
+                <h3 style={{fontFamily:'Bodoni Moda,serif',fontSize:22,color:'var(--plum)',margin:0}}>
+                  {selectedCustomer.name}
+                </h3>
+                <span style={{fontSize:12,color:'#6B7280'}}>{selectedCustomer.city}, {selectedCustomer.state} · {selectedCustomer.mobile}</span>
+              </div>
+              <button
+                onClick={()=>setSelectedCustomer(null)}
+                style={{background:'none',border:'none',fontSize:20,cursor:'pointer',color:'#9CA3AF'}}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:20}}>
+              <div style={{background:'#F9FAFB',padding:14,borderRadius:8}}>
+                <span style={{fontSize:10.5,textTransform:'uppercase',fontWeight:600,color:'#9CA3AF'}}>Total Orders Placed</span>
+                <div style={{fontSize:20,fontWeight:700,color:'var(--plum)',marginTop:4}}>{selectedCustomer.totalOrders}</div>
+              </div>
+              <div style={{background:'#F9FAFB',padding:14,borderRadius:8}}>
+                <span style={{fontSize:10.5,textTransform:'uppercase',fontWeight:600,color:'#9CA3AF'}}>Lifetime Valuation</span>
+                <div style={{fontSize:20,fontWeight:700,color:'var(--plum)',marginTop:4}}>₹{selectedCustomer.totalSpent.toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+
+            <span style={{fontSize:11,fontWeight:600,letterSpacing:'.08em',color:'#374151',textTransform:'uppercase',display:'block',marginBottom:10}}>
+              Order History ({selectedCustomer.orders.length})
+            </span>
+
+            <div style={{maxHeight:300,overflowY:'auto',display:'flex',flexDirection:'column',gap:10}}>
+              {selectedCustomer.orders.map(o => (
+                <div key={o.id} style={{border:'1px solid #E5E7EB',borderRadius:6,padding:12,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <div>
+                    <div style={{fontFamily:'Cinzel,serif',fontWeight:700,fontSize:12,color:'var(--plum)'}}>#{String(o.id).replace('#','')}</div>
+                    <div style={{fontSize:11,color:'#6B7280',marginTop:2}}>{o.date || 'Recent'} · {o.paymentMethod || 'Prepaid'}</div>
+                    <div style={{fontSize:11,color:'#9CA3AF',marginTop:2}}>
+                      {Array.isArray(o.items) ? o.items.map(i=>i.name).join(', ') : o.product}
+                    </div>
+                  </div>
+                  <div style={{textAlign:'right'}}>
+                    <div style={{fontFamily:'Bodoni Moda,serif',fontWeight:600,fontSize:14,color:'var(--plum)'}}>
+                      ₹{(o.amount || 0).toLocaleString('en-IN')}
+                    </div>
+                    <span className={'admin-badge admin-badge-' + (o.status ? o.status.toLowerCase() : 'confirmed')} style={{fontSize:10,marginTop:4}}>
+                      {o.status || 'Confirmed'}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
+// 5. CATEGORIES TAB
 function AdminCategoriesTab({products}){
   const activeList = products.filter(p => p.active !== false);
   const sarees = activeList.filter(p => p.category === 'Sarees');
