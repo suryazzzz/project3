@@ -2306,27 +2306,63 @@ body{
 .admin-badge-info { background: #EFF6FF; color: #1E40AF; }
 .admin-badge-purple { background: #FAF5FF; color: #6B21A8; }
 
+.admin-modal-backdrop,
 .admin-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(17, 24, 39, 0.55);
-  backdrop-filter: blur(3px);
-  z-index: 1000;
+  position: fixed !important;
+  inset: 0 !important;
+  background: rgba(17, 24, 39, 0.65) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  z-index: 99999 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 20px !important;
+}
+.admin-modal,
+.admin-modal-content {
+  background: #FFFFFF !important;
+  border-radius: 12px !important;
+  width: 100% !important;
+  max-width: 760px;
+  max-height: 90vh !important;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.35) !important;
+  position: relative !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  animation: adminModalFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes adminModalFadeIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.admin-modal-header {
+  padding: 18px 24px;
+  border-bottom: 1px solid #E5E7EB;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #FFFFFF;
+  flex-shrink: 0;
+}
+.admin-modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #9CA3AF;
+  cursor: pointer;
+  padding: 4px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  line-height: 1;
 }
-.admin-modal-content {
-  background: #FFFFFF;
-  border-radius: 14px;
-  width: 100%;
-  max-width: 640px;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-  padding: 28px;
-  position: relative;
+.admin-modal-close:hover {
+  color: #111827;
+  background: #F3F4F6;
 }
 
 @media (max-width: 1024px) {
@@ -5178,11 +5214,15 @@ function AdminProductsTab({products, setProducts, toast}){
 
   const openEditModal = (p) => {
     setEditingProduct(p);
+    const cleanPrice = p.price !== undefined ? Number(String(p.price).replace(/[^0-9.]/g, '')) || p.price : '';
+    const cleanOrig = p.originalPrice !== undefined ? Number(String(p.originalPrice).replace(/[^0-9.]/g, '')) || p.originalPrice : '';
+    const cleanStock = p.stock !== undefined ? parseInt(p.stock, 10) || 0 : 10;
+
     setForm({
       name: p.name || '',
       category: p.category === 'Sarees' ? 'Sarees' : 'Salwar Sets',
-      price: p.price !== undefined ? p.price : '',
-      originalPrice: p.originalPrice !== undefined ? p.originalPrice : '',
+      price: cleanPrice,
+      originalPrice: cleanOrig,
       fabric: p.fabric || '',
       color: p.color || '',
       pattern: p.pattern || '',
@@ -5190,7 +5230,7 @@ function AdminProductsTab({products, setProducts, toast}){
       description: p.description || '',
       images: Array.isArray(p.images) && p.images.length > 0 ? [...p.images] : ['images/sarees/crimson-kanjeevaram.jpg'],
       urlInput: '',
-      stock: p.stock !== undefined ? p.stock : 10,
+      stock: cleanStock,
       sizes: Array.isArray(p.sizes) ? [...p.sizes] : ['M', 'L', 'XL', 'XXL'],
       featured: !!p.featured,
       newArrival: p.newArrival !== undefined ? !!p.newArrival : !!p.isNew,
@@ -5308,6 +5348,9 @@ function AdminProductsTab({products, setProducts, toast}){
           active: form.active
         });
         toast('Product updated successfully.');
+        if (setProducts) {
+          setProducts(SrithiProductDB.getSynchronousAll({ includeInactive: true }));
+        }
       } else {
         // Create new product in persistent DB
         await SrithiProductDB.create({
@@ -5693,7 +5736,7 @@ function AdminProductsTab({products, setProducts, toast}){
 
       {/* ADD / EDIT PRODUCT MODAL */}
       {addModalOpen && (
-        <div className="admin-modal-backdrop">
+        <div className="admin-modal-backdrop" onClick={(e)=>{ if(e.target===e.currentTarget) setAddModalOpen(false); }}>
           <div className="admin-modal" style={{maxWidth:760,maxHeight:'90vh',display:'flex',flexDirection:'column'}}>
             <div className="admin-modal-header" style={{flexShrink:0}}>
               <div>
@@ -6043,7 +6086,7 @@ function AdminProductsTab({products, setProducts, toast}){
 
       {/* DELETE / DEACTIVATE CONFIRMATION MODAL */}
       {deletingProduct && (
-        <div className="admin-modal-backdrop">
+        <div className="admin-modal-backdrop" onClick={(e)=>{ if(e.target===e.currentTarget) setDeletingProduct(null); }}>
           <div className="admin-modal" style={{maxWidth:480}}>
             <div className="admin-modal-header">
               <h2 style={{fontFamily:'Bodoni Moda,serif',fontSize:18,fontWeight:600,color:'#DC2626'}}>
